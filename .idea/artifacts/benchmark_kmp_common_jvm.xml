@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="benchmark-kmp-common-jvm">
+    <output-path>$PROJECT_DIR$/benchmark-kmp-common/build/libs</output-path>
+    <root id="archive" name="benchmark-kmp-common-jvm.jar" />
+  </artifact>
+</component>

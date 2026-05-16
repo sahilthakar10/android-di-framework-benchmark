@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="benchmark-kmp-metro-jvm">
+    <output-path>$PROJECT_DIR$/benchmark-kmp-metro/build/libs</output-path>
+    <root id="archive" name="benchmark-kmp-metro-jvm.jar" />
+  </artifact>
+</component>

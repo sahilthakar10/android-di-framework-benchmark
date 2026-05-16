@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="benchmark-kmp-koin-jvm">
+    <output-path>$PROJECT_DIR$/benchmark-kmp-koin/build/libs</output-path>
+    <root id="archive" name="benchmark-kmp-koin-jvm.jar" />
+  </artifact>
+</component>

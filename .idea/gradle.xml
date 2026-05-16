@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/di-benchmark-compiler" name="di-benchmark-compiler">
+                <projects>
+                  <project path="$PROJECT_DIR$/di-benchmark-compiler" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="testRunner" value="CHOOSE_PER_TEST" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/benchmark-hilt-large" />
+            <option value="$PROJECT_DIR$/benchmark-metro-large" />
+            <option value="$PROJECT_DIR$/di-benchmark-annotations" />
+            <option value="$PROJECT_DIR$/di-benchmark-compiler" />
+            <option value="$PROJECT_DIR$/di-benchmark-export" />
+            <option value="$PROJECT_DIR$/di-benchmark-runtime" />
+            <option value="$PROJECT_DIR$/di-benchmark-ui" />
+            <option value="$PROJECT_DIR$/sample-hilt-module" />
+            <option value="$PROJECT_DIR$/sample-metro-module" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>
