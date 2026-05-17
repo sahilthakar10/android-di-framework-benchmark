@@ -80,6 +80,9 @@ val koinFeatureModule = module {
  * Koin cannot read Hilt's Dagger component directly. Each dependency
  * must be registered manually. Compare with Metro's @Includes which
  * does this automatically with zero bridge code.
+ *
+ * Note: Koin announced koin-dagger-bridge (scope.dagger<T>()) for automated
+ * bridging, but it's not yet published on Maven Central as of Koin 4.2.0.
  */
 fun createBridgeModule(
     httpClient: HttpClient,

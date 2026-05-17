@@ -12,7 +12,7 @@ import org.koin.core.context.stopKoin
  * Hilt owns core infrastructure (network, auth, analytics, DB, cache, logging).
  * Koin owns new feature modules (product, cart, order).
  *
- * Bridge: createBridgeModule() manually passes 6 Hilt singletons into Koin (~20 lines).
+ * Bridge: createBridgeModule() manually passes 6 Hilt singletons into Koin.
  * Compare with Metro interop which uses @Includes for zero bridge code.
  */
 object HiltKoinInteropExample {
@@ -31,7 +31,7 @@ object HiltKoinInteropExample {
         val koin = startKoin { modules(bridgeModule, koinFeatureModule) }.koin
 
         // Koin features consume Hilt infra transparently
-        val products = koin.get<ProductRepository>().getProducts()
+        koin.get<ProductRepository>().getProducts()
         koin.get<CartRepository>().addToCart("p1", 2)
         koin.get<OrderService>().placeOrder(
             listOf(CartItem("c1", "p1", "Headphones", 79.99, 2)), "addr_1"
