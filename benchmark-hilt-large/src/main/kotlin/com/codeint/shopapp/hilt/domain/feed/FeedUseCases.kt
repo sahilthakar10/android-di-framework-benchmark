@@ -6,8 +6,7 @@ import com.codeint.shopapp.hilt.core.logging.AppLogger
 import javax.inject.Inject
 
 class GetFeedListUseCase @Inject constructor(
-    private val repository: FeedRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: FeedRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(page: Int = 0, pageSize: Int = 20): PagedResult<FeedDomainModel> {
         analytics.track("get_feed_list", mapOf("page" to page))
@@ -16,8 +15,7 @@ class GetFeedListUseCase @Inject constructor(
 }
 
 class GetFeedDetailUseCase @Inject constructor(
-    private val repository: FeedRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: FeedRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(id: String): FeedDomainModel? {
         analytics.track("get_feed_detail", mapOf("id" to id))
@@ -25,44 +23,20 @@ class GetFeedDetailUseCase @Inject constructor(
     }
 }
 
-class CreateFeedUseCase @Inject constructor(
-    private val repository: FeedRepository,
-    private val logger: AppLogger
-) {
-    fun execute(model: FeedDomainModel): FeedDomainModel {
-        logger.info("FeedUseCase", "Creating feed: ${model.name}")
-        return repository.create(model)
-    }
+class CreateFeedUseCase @Inject constructor(private val repository: FeedRepository, private val logger: AppLogger) {
+    fun execute(model: FeedDomainModel) = repository.create(model)
 }
 
-class UpdateFeedUseCase @Inject constructor(
-    private val repository: FeedRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String, model: FeedDomainModel): FeedDomainModel {
-        logger.info("FeedUseCase", "Updating feed: $id")
-        return repository.update(id, model)
-    }
+class UpdateFeedUseCase @Inject constructor(private val repository: FeedRepository, private val logger: AppLogger) {
+    fun execute(id: String, model: FeedDomainModel) = repository.update(id, model)
 }
 
-class DeleteFeedUseCase @Inject constructor(
-    private val repository: FeedRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String): Boolean {
-        logger.info("FeedUseCase", "Deleting feed: $id")
-        return repository.delete(id)
-    }
+class DeleteFeedUseCase @Inject constructor(private val repository: FeedRepository, private val logger: AppLogger) {
+    fun execute(id: String) = repository.delete(id)
 }
 
-class SearchFeedUseCase @Inject constructor(
-    private val repository: FeedRepository,
-    private val analytics: AnalyticsTracker
-) {
-    fun execute(query: String, page: Int = 0): PagedResult<FeedDomainModel> {
-        analytics.track("search_feed", mapOf("query" to query))
-        return repository.search(query, page)
-    }
+class SearchFeedUseCase @Inject constructor(private val repository: FeedRepository, private val analytics: AnalyticsTracker) {
+    fun execute(query: String, page: Int = 0) = repository.search(query, page)
 }
 
 class ValidateFeedUseCase @Inject constructor(private val logger: AppLogger) {
@@ -74,25 +48,16 @@ class ValidateFeedUseCase @Inject constructor(private val logger: AppLogger) {
     }
 }
 
-class RefreshFeedCacheUseCase @Inject constructor(
-    private val repository: FeedRepository,
-    private val logger: AppLogger
-) {
-    fun execute() {
-        logger.info("FeedUseCase", "Refreshing feed cache")
-        repository.clearCache()
-        repository.getAll()
-    }
+class RefreshFeedCacheUseCase @Inject constructor(private val repository: FeedRepository, private val logger: AppLogger) {
+    fun execute() { repository.clearCache(); repository.getAll() }
 }
 
 class GetFeedCountUseCase @Inject constructor(private val repository: FeedRepository) {
-    fun execute(): Int = repository.getAll().totalCount
+    fun execute() = repository.getAll().totalCount
 }
 
 class FilterFeedUseCase @Inject constructor(private val repository: FeedRepository) {
-    fun execute(predicate: (FeedDomainModel) -> Boolean): List<FeedDomainModel> {
-        return repository.getAll().items.filter(predicate)
-    }
+    fun execute(predicate: (FeedDomainModel) -> Boolean) = repository.getAll().items.filter(predicate)
 }
 
 data class ValidationResult(val isValid: Boolean, val errors: List<String>)

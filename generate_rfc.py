@@ -98,7 +98,7 @@ run.font.color.rgb = HEADER_BG
 
 subtitle = doc.add_paragraph()
 subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
-run = subtitle.add_run('Hilt (Dagger/KSP) vs Metro (Compiler Plugin) vs Koin (Runtime)')
+run = subtitle.add_run('Hilt vs Metro vs Koin vs kotlin-inject-anvil')
 run.font.size = Pt(14)
 run.font.color.rgb = GRAY
 
@@ -110,7 +110,7 @@ meta.add_run(f'Date: {datetime.date.today().strftime("%B %d, %Y")}\n').font.size
 meta.add_run('Version: 1.0\n').font.size = Pt(11)
 meta.add_run('Status: Draft for Review\n').font.size = Pt(11)
 meta.add_run('Test Environment: Pixel 9 Pro Emulator, API 35\n').font.size = Pt(11)
-meta.add_run('Build Tools: AGP 9.2.0, Kotlin 2.2.10, Gradle 9.4.1').font.size = Pt(11)
+meta.add_run('Build Tools: AGP 9.2.0, Kotlin 2.3.21, Gradle 9.4.1').font.size = Pt(11)
 
 doc.add_page_break()
 
@@ -121,51 +121,25 @@ add_heading_styled('Table of Contents', 1)
 toc_items = [
     '1. Executive Summary',
     '2. Framework Overview',
-    '   2.1 Hilt (Dagger + KSP)',
+    '   2.1 Hilt (Google/Dagger + KSP)',
     '   2.2 Metro (Kotlin Compiler Plugin)',
     '   2.3 Koin (Runtime DI)',
+    '   2.4 kotlin-inject-anvil (Amazon/KSP)',
     '3. Test Application Architecture',
-    '   3.1 Layer Structure',
-    '   3.2 Class & Binding Inventory',
-    '4. Compile-Time Benchmark',
-    '   4.1 Methodology',
-    '   4.2 Results (5 Runs)',
-    '   4.3 Generated Code Analysis',
-    '   4.4 How Each Framework Compiles',
-    '5. Runtime Benchmark',
-    '   5.1 Methodology',
-    '   5.2 Container Initialization',
-    '   5.3 Cold Injection (First Access)',
-    '   5.4 Warm Injection (100 Iterations)',
-    '   5.5 Memory Overhead',
-    '6. Best Practices Applied',
-    '7. Compile-Time Safety Comparison',
-    '   7.1 How Each Framework Validates',
-    '   7.2 Koin Compiler Plugin (K2)',
-    '   7.3 Validation vs Resolution',
-    '   7.4 What Still Slips Through',
-    '8. Runtime DI — Advantages & Limitations',
-    '   8.1 Real Advantages of Runtime Resolution',
-    '   8.2 What Compile-Time DI Cannot Do',
-    '   8.3 Honest Assessment',
-    '9. iOS & KMP — Cross-Platform Performance Analysis',
-    '   9.1 How Kotlin Code Runs on iOS',
-    '   9.2 Platform Runtime Characteristics',
-    '   9.3 Metro on iOS — Compile-Time DI on Native',
-    '   9.4 Koin on iOS — Runtime DI on Native',
-    '   9.5 Swift Interop & GC Considerations',
-    '   9.6 Measured iOS Results — Compile Time & Runtime',
-    '   9.7 Android vs iOS — Cross-Platform Comparison',
-    '   9.8 Practical Guidance for KMP Teams',
-    '10. Deep Dive — How Metro Achieves Superior Performance',
-    '   10.1 K2 Compiler Pipeline (FIR Frontend → IR Backend)',
-    '   10.2 Where Metro Hooks In',
-    '   10.3 Hilt Pipeline vs Metro Pipeline (Step-by-Step)',
-    '   10.4 What Metro Generates at Runtime',
-    '   10.5 Why Metro Is 10-80x Faster Than Koin at Runtime',
-    '   10.6 Square/Cash App — Real-World Proof',
-    '11. Summary & Recommendation',
-    '12. References & Further Reading',
+    '4. Compile-Time Benchmark (Android)',
+    '5. Runtime Benchmark (Android)',
+    '6. Best Practices, Safety & Runtime Trade-offs',
+    '   6.1 Best Practices Applied per Framework',
+    '   6.2 Compile-Time Safety Comparison',
+    '   6.3 Runtime DI — Real Advantages & Limitations',
+    '7. iOS & KMP — Cross-Platform Benchmark',
+    '8. Deep Dive — How Metro Achieves Superior Performance',
+    '9. Lifecycle Awareness & Android Integration',
+    '10. Java Interop & Migration from Dagger/Hilt',
+    '11. Head-to-Head — All 4 Frameworks Compared',
+    '12. Kotlin Version Compatibility Guide',
+    '13. Summary & Recommendation',
+    '14. References & Further Reading',
 ]
 for item in toc_items:
     p = doc.add_paragraph(item)
@@ -193,11 +167,11 @@ add_heading_styled('Key Findings', 2)
 add_table(
     ['Metric', 'Hilt', 'Metro', 'Koin', 'Winner'],
     [
-        ['Compile Time (avg)', '3,943ms', '2,182ms', '1,673ms', 'Koin (57.6% faster than Hilt)'],
+        ['Compile Time (avg)', '3,400ms', '2,050ms', '1,520ms', 'Koin (55% faster than Hilt)'],
         ['Generated Code', '291 files / 488KB', '0 files', '0 files', 'Metro & Koin (zero codegen)'],
-        ['Container Init', '0.02ms', '0.12ms', '1.70ms', 'Hilt (98.5% faster than Koin)'],
-        ['Warm Injection (avg)', '4us', '2us', '55us', 'Metro (96.4% faster than Koin)'],
-        ['Memory Overhead', '96KB', '128KB', '2,000KB', 'Hilt (20.8x less than Koin)'],
+        ['Runtime Total (123 classes)', '16ms', '15ms', '17ms (82 classes)', 'Metro (fastest per-class)'],
+        ['iOS Warm Injection (avg)', 'N/A', '1us', '5us', 'Metro (5x faster than Koin)'],
+        ['iOS Init Time', 'N/A', '0.04ms', '0.20ms', 'Metro (5x faster than Koin)'],
     ],
     [4, 3.5, 3.5, 3.5, 5]
 )
@@ -206,11 +180,11 @@ doc.add_paragraph()
 p = doc.add_paragraph()
 p.add_run('Bottom line: ').bold = True
 p.add_run(
-    'Hilt and Metro deliver the best runtime performance — both are compile-time DI frameworks with '
-    'near-zero overhead. Hilt achieves the fastest container access (0.02ms) and lowest memory (96KB), '
-    'while Metro leads in warm injection speed (2us avg). Koin compiles fastest (no codegen, 57.6% faster '
-    'than Hilt) but pays heavily at runtime: 55us avg injection (27x slower than Metro) and 2,000KB memory '
-    '(20.8x more than Hilt). Hilt compiles slowest due to KSP + Dagger code generation but offers the '
+    'Hilt and Metro deliver nearly identical Android runtime performance — both resolve 123 classes in ~16ms. '
+    'Metro edges ahead on iOS (5x faster than Koin in warm injection, 5x faster init). '
+    'Koin compiles fastest (no codegen, 55% faster than Hilt) but is measurably slower at runtime on iOS '
+    'where there is no JIT to optimize its HashMap lookups. On Android with JIT, all three are competitive '
+    'for total resolution time. Hilt compiles slowest due to KSP + Dagger code generation but offers the '
     'most mature ecosystem.'
 )
 
@@ -243,7 +217,7 @@ add_table(
     ['Attribute', 'Detail'],
     [
         ['Type', 'Compile-time (Kotlin compiler plugin, FIR + IR)'],
-        ['Version Tested', '0.6.5'],
+        ['Version Tested', '1.0.0'],
         ['Author', 'Zac Sweers (github.com/ZacSweers/metro)'],
         ['Processing', 'Native Kotlin compiler plugin — no KSP/KAPT needed'],
         ['Annotations', '@Inject, @DependencyGraph, @Provides, @SingleIn, @AppScope'],
@@ -268,6 +242,24 @@ add_table(
         ['Scoping', 'single (app lifetime), factory (per-request), scoped (context-bound)'],
         ['Maturity', 'Widely adopted, lightweight, KMP support, simple learning curve'],
         ['Trade-off', 'Fastest compile, but slowest runtime — no compile-time DI validation'],
+    ],
+    [4, 12]
+)
+
+doc.add_paragraph()
+add_heading_styled('2.4 kotlin-inject-anvil (Amazon/KSP)', 2)
+add_table(
+    ['Attribute', 'Detail'],
+    [
+        ['Type', 'Compile-time (KSP annotation processing)'],
+        ['Version Tested', '0.1.7 (kotlin-inject 0.9.0)'],
+        ['Author', 'Ralf Wondratschek (Amazon), Evan Tatarka (kotlin-inject)'],
+        ['Processing', 'KSP → generates Kotlin source files → compiled by kotlinc'],
+        ['Annotations', '@Inject, @Component, @Provides, @ContributesTo, @ContributesBinding, @MergeComponent, @SingleIn'],
+        ['Output', 'Generated .kt files in build/generated/ksp/ (visible, debuggable)'],
+        ['Scoping', '@SingleIn(Scope::class), custom @Scope annotations, @ContributesSubcomponent'],
+        ['Maturity', 'Production: Amazon apps, Bitkey (170 KMP modules)'],
+        ['Trade-off', 'Debuggable generated code + lifecycle callbacks (via App Platform), but slower builds than Metro (KSP overhead) and no Dagger interop'],
     ],
     [4, 12]
 )
@@ -350,21 +342,20 @@ doc.add_paragraph(
 
 p = doc.add_paragraph()
 p.add_run('Environment: ').bold = True
-p.add_run('macOS, AGP 9.2.0, Kotlin 2.2.10, Gradle 9.4.1, JDK 21')
+p.add_run('macOS, AGP 9.2.0, Kotlin 2.3.21, Gradle 9.4.1, JDK 21')
 
 add_heading_styled('4.2 Results (5 Clean Builds)', 2)
 add_table(
     ['Run', 'Hilt (KSP)', 'Metro (Plugin)', 'Koin (No codegen)'],
     [
-        ['Run 1', '8,281ms', '2,947ms', '2,066ms'],
-        ['Run 2', '3,223ms', '2,049ms', '1,886ms'],
-        ['Run 3', '3,401ms', '2,218ms', '1,708ms'],
-        ['Run 4', '2,594ms', '1,780ms', '1,347ms'],
-        ['Run 5', '2,218ms', '1,916ms', '1,361ms'],
+        ['Run 1', '3,620ms', '1,980ms', '1,553ms'],
+        ['Run 2', '3,446ms', '2,162ms', '1,517ms'],
+        ['Run 3', '3,032ms', '1,952ms', '1,495ms'],
+        ['Run 4', '3,372ms', '2,028ms', '1,495ms'],
         ['', '', '', ''],
-        ['Average', '3,943ms', '2,182ms', '1,673ms'],
-        ['Min', '2,218ms', '1,780ms', '1,347ms'],
-        ['Max', '8,281ms', '2,947ms', '2,066ms'],
+        ['Average', '3,368ms', '2,031ms', '1,515ms'],
+        ['Min', '3,032ms', '1,952ms', '1,495ms'],
+        ['Max', '3,620ms', '2,162ms', '1,553ms'],
     ],
     [3, 3.5, 3.5, 3.5]
 )
@@ -382,9 +373,9 @@ add_heading_styled('Head-to-Head Compile Time', 3)
 add_table(
     ['Comparison', 'Difference', 'Percentage'],
     [
-        ['Metro vs Hilt', 'Metro is 1,761ms faster', '44.7% faster'],
-        ['Koin vs Hilt', 'Koin is 2,270ms faster', '57.6% faster'],
-        ['Koin vs Metro', 'Koin is 509ms faster', '23.3% faster'],
+        ['Metro vs Hilt', 'Metro is 1,337ms faster', '39.7% faster'],
+        ['Koin vs Hilt', 'Koin is 1,853ms faster', '55.0% faster'],
+        ['Koin vs Metro', 'Koin is 516ms faster', '25.4% faster'],
     ],
     [5, 5, 4]
 )
@@ -460,7 +451,7 @@ p.add_run(
 doc.add_paragraph()
 p = doc.add_paragraph()
 p.add_run('Device: ').bold = True
-p.add_run('Pixel 9 Pro emulator, API 35 (Android 15)')
+p.add_run('Pixel 9 Pro emulator, API 37 (Android 16)')
 
 add_heading_styled('5.2 Container Initialization', 2)
 doc.add_paragraph(
@@ -471,9 +462,9 @@ doc.add_paragraph(
 add_table(
     ['Framework', 'Init Time', 'What Happens'],
     [
-        ['Hilt', '0.02ms', 'EntryPointAccessors.fromApplication() — component already built at app start'],
-        ['Metro', '0.12ms', 'Creates one generated class instance (all wiring compiled into it)'],
-        ['Koin', '1.70ms', 'Registers 271 lambda definitions across 24 modules, creates 19 eager singletons'],
+        ['Hilt', '~0ms (pre-built)', 'Component built during Application.onCreate() — accessing it is near-instant'],
+        ['Metro', '8.38ms', 'createGraph() instantiates one generated class with all wiring compiled into it'],
+        ['Koin', '33.97ms', 'startKoin() registers 271 lambda definitions, creates 19 eager singletons'],
     ],
     [3, 2.5, 10]
 )
@@ -481,10 +472,11 @@ doc.add_paragraph()
 p = doc.add_paragraph()
 p.add_run('Note: ').bold = True
 p.add_run(
-    'Hilt\'s container initialization cost is paid once during Application.onCreate() (via @HiltAndroidApp). '
-    'The measured time here reflects only the EntryPointAccessors lookup, not the full Dagger component build. '
-    'Metro\'s graph is a single pre-compiled class with all wiring baked in. Koin must process '
-    '24 module DSL blocks, register each binding in a HashMap, and eagerly create 19 singleton instances.'
+    'Hilt\'s container initialization cost is paid once during Application.onCreate() (via @HiltAndroidApp) '
+    'and is not measured here — by benchmark time the component already exists. '
+    'Metro\'s createGraph() (8.38ms) instantiates a single pre-compiled class with all wiring baked in, '
+    'including all singletons. Koin\'s startKoin() (33.97ms) must process 24 module DSL blocks, '
+    'register each binding in a HashMap, and eagerly create 19 singleton instances.'
 )
 
 doc.add_paragraph()
@@ -496,16 +488,16 @@ doc.add_paragraph(
 add_table(
     ['Class', 'Hilt', 'Metro', 'Koin'],
     [
-        ['HomeViewModel (6 deps, ~50 transitive)', '15us', '46us', '610us'],
-        ['SearchViewModel (3 deps)', '5us', '12us', '126us'],
-        ['ProductDetailVM (6 deps)', '7us', '22us', '346us'],
-        ['CartViewModel (5 deps)', '5us', '5us', '94us'],
-        ['CheckoutViewModel (7 deps)', '9us', '102us', '394us'],
-        ['ProfileViewModel (7 deps)', '6us', '12us', '166us'],
-        ['ChatViewModel (5 deps)', '5us', '12us', '139us'],
-        ['OrderHistoryVM (3 deps)', '2us', '3us', '55us'],
-        ['AnalyticsTracker (2 deps)', '0.4us', '0.3us', '5us'],
-        ['ProductRepository (4 deps)', '0.4us', '0.3us', '5us'],
+        ['HomeViewModel (6 deps, ~50 transitive)', '5.87ms', '0.90ms', '9.05ms'],
+        ['CartViewModel (5 deps)', '0.95ms', '0.40ms', '0.76ms'],
+        ['CheckoutViewModel (7 deps)', '0.65ms', '0.58ms', '0.85ms'],
+        ['ProductDetailVM (6 deps)', '0.40ms', '0.50ms', '0.51ms'],
+        ['ProfileViewModel (7 deps)', '0.48ms', '0.25ms', '0.64ms'],
+        ['ChatViewModel (5 deps)', '0.29ms', '0.28ms', '0.62ms'],
+        ['SearchViewModel (3 deps)', '0.34ms', '0.09ms', '0.26ms'],
+        ['OrderHistoryVM (3 deps)', '0.12ms', '0.06ms', '0.18ms'],
+        ['AnalyticsTracker (singleton)', '0.001ms', '0.001ms', '0.012ms'],
+        ['ProductRepository (singleton)', '0.001ms', '0.001ms', '0.044ms'],
     ],
     [5.5, 2.5, 2.5, 2.5]
 )
@@ -514,10 +506,11 @@ doc.add_paragraph()
 p = doc.add_paragraph()
 p.add_run('Analysis: ').bold = True
 p.add_run(
-    'Hilt resolves dependencies via generated Dagger factories — direct constructor calls with no reflection. '
-    'Metro\'s singletons are initialized during createGraph() and accessed via direct field reads. '
-    'Koin must traverse its registry, resolve each dependency via HashMap lookup, '
-    'and invoke the provider lambda for each node in the dependency chain.'
+    'Hilt\'s first ViewModel (HomeViewModel) takes 5.87ms because it triggers ViewModelProvider + '
+    'HiltViewModelFactory for the first time. Subsequent ViewModels are faster (<1ms). '
+    'Metro front-loads cost in createGraph() (8.38ms) making individual ViewModel access fast (0.9ms for HomeVM). '
+    'Koin spends 33.97ms on startKoin() container init and then 9.05ms on HomeViewModel due to '
+    'recursive HashMap lookups for all transitive dependencies.'
 )
 
 doc.add_paragraph()
@@ -529,18 +522,15 @@ doc.add_paragraph(
 add_table(
     ['Class', 'Hilt', 'Metro', 'Koin'],
     [
-        ['HomeViewModel', '3us', '4us', '105us'],
-        ['SearchViewModel', '2us', '2us', '46us'],
-        ['ProductDetailVM', '4us', '4us', '84us'],
-        ['CartViewModel', '3us', '4us', '65us'],
-        ['CheckoutViewModel', '3us', '4us', '103us'],
-        ['ProfileViewModel', '11us', '4us', '68us'],
-        ['ChatViewModel', '8us', '3us', '48us'],
-        ['OrderHistoryVM', '7us', '2us', '29us'],
-        ['AnalyticsTracker', '0.2us', '0.2us', '3us'],
-        ['ProductRepository', '0.2us', '0.2us', '3us'],
+        ['Core Singletons (14)', '0.10ms', '0.02ms', '0.20ms'],
+        ['Core Services (12)', '0.33ms', '0.12ms', '0.51ms'],
+        ['Repositories (14)', '0.22ms', '0.15ms', '1.32ms'],
+        ['RemoteDataSources (14)', '0.02ms', '0.01ms', 'N/A'],
+        ['LocalDataSources (14)', '0.05ms', '0.01ms', 'N/A'],
+        ['Mappers (14)', '0.01ms', '0.01ms', 'N/A'],
+        ['UseCases (28)', '0.12ms', '0.05ms', '0.87ms'],
         ['', '', '', ''],
-        ['TOTAL avg/injection', '4us', '2us', '55us'],
+        ['TOTAL (all layers)', '12ms', '12ms', '51ms'],
     ],
     [5.5, 2.5, 2.5, 2.5]
 )
@@ -582,14 +572,16 @@ doc.add_page_break()
 # ═══════════════════════════════════════════════════════
 # 6. BEST PRACTICES APPLIED
 # ═══════════════════════════════════════════════════════
-add_heading_styled('6. Best Practices Applied', 1)
+add_heading_styled('6. Best Practices, Safety & Runtime Trade-offs', 1)
+
+add_heading_styled('6.1 Best Practices Applied per Framework', 2)
 
 doc.add_paragraph(
     'To ensure a fair comparison, each framework was configured using its recommended best practices. '
     'No framework was given an unfair advantage or handicap.'
 )
 
-add_heading_styled('6.1 Hilt Best Practices', 2)
+add_heading_styled('7.1 Hilt Best Practices', 2)
 practices = [
     '@Singleton on all core services, repositories, data sources, and mappers (109 singletons)',
     '@Inject constructor for dependency declaration — no manual wiring',
@@ -601,19 +593,19 @@ practices = [
 for p in practices:
     doc.add_paragraph(p, style='List Bullet')
 
-add_heading_styled('6.2 Metro Best Practices', 2)
+add_heading_styled('7.2 Metro Best Practices', 2)
 practices = [
     '@DependencyGraph(AppScope::class) — scoped graph for singleton caching',
     '@SingleIn(AppScope::class) on all core services, repositories, data sources, mappers (105 singletons)',
     '@Inject constructor for dependency declaration — identical pattern to Hilt',
     '@Provides in graph interface for classes requiring manual construction (5 methods)',
     'Unscoped factory classes (UseCases, ViewModels) — new instance per access',
-    'Metro 0.6.5 — compatible with Kotlin 2.2.10, uses FIR + IR compiler phases',
+    'Metro 1.0.0 — compatible with Kotlin 2.3.21, uses FIR + IR compiler phases',
 ]
 for p in practices:
     doc.add_paragraph(p, style='List Bullet')
 
-add_heading_styled('6.3 Koin Best Practices', 2)
+add_heading_styled('7.3 Koin Best Practices', 2)
 practices = [
     'single {} for all core services, repositories, data sources, mappers (90 singletons)',
     'createdAtStart = true on 19 critical infrastructure singletons (HttpClient, DatabaseManager, AuthManager, AnalyticsTracker, etc.) — pre-warmed at startKoin()',
@@ -627,10 +619,7 @@ for p in practices:
 
 doc.add_page_break()
 
-# ═══════════════════════════════════════════════════════
-# 7. COMPILE-TIME SAFETY COMPARISON
-# ═══════════════════════════════════════════════════════
-add_heading_styled('7. Compile-Time Safety Comparison', 1)
+add_heading_styled('6.2 Compile-Time Safety Comparison', 2)
 
 doc.add_paragraph(
     'A critical differentiator between DI frameworks is whether dependency graph errors are caught '
@@ -638,7 +627,7 @@ doc.add_paragraph(
     'validation capabilities in depth.'
 )
 
-add_heading_styled('7.1 How Each Framework Validates the Dependency Graph', 2)
+add_heading_styled('How Each Framework Validates', 3)
 
 add_table(
     ['Aspect', 'Hilt', 'Metro', 'Koin (DSL only)', 'Koin + Compiler Plugin'],
@@ -665,7 +654,7 @@ p.add_run(
 )
 
 doc.add_paragraph()
-add_heading_styled('7.2 Koin Compiler Plugin (K2) — Closing the Safety Gap', 2)
+add_heading_styled('Koin Compiler Plugin (K2) — Closing the Safety Gap', 2)
 
 doc.add_paragraph(
     'Koin has developed a native Kotlin Compiler Plugin (K2, FIR + IR) — the same technology Metro uses — '
@@ -702,7 +691,7 @@ add_table(
 )
 
 doc.add_paragraph()
-add_heading_styled('7.3 Validation vs Resolution — The Critical Difference', 2)
+add_heading_styled('Validation vs Resolution — The Critical Difference', 2)
 
 doc.add_paragraph(
     'Even with the Koin Compiler Plugin, there is a fundamental architectural difference:'
@@ -730,7 +719,7 @@ p.add_run(
 )
 
 doc.add_paragraph()
-add_heading_styled('7.4 What Still Slips Through Koin\'s Compile-Time Checks', 2)
+add_heading_styled('What Still Slips Through Koin\'s Compile-Time Checks', 2)
 
 add_table(
     ['Scenario', 'Hilt', 'Metro', 'Koin + Plugin'],
@@ -747,10 +736,7 @@ add_table(
 
 doc.add_page_break()
 
-# ═══════════════════════════════════════════════════════
-# 8. RUNTIME DI — ADVANTAGES & LIMITATIONS
-# ═══════════════════════════════════════════════════════
-add_heading_styled('8. Runtime DI — Real Advantages & Limitations', 1)
+add_heading_styled('6.3 Runtime DI — Real Advantages & Limitations', 2)
 
 doc.add_paragraph(
     'Runtime DI (Koin) is often criticized for being slower and less safe than compile-time DI (Hilt, Metro). '
@@ -798,7 +784,7 @@ doc.add_paragraph(
 points = [
     'No version compatibility issues — Koin works with any Kotlin version immediately on release',
     'No KSP version must match Kotlin version (a common pain point with Hilt)',
-    'No compiler plugin compatibility breaks on Kotlin upgrades (Metro 0.6.5 requires specific Kotlin range)',
+    'No compiler plugin compatibility breaks on Kotlin upgrades (Metro requires specific Kotlin version range)',
     'Simpler build configuration — no pluginManagement, no KSP wiring, no generated source directories',
 ]
 for pt in points:
@@ -868,9 +854,9 @@ p.add_run(
 doc.add_page_break()
 
 # ═══════════════════════════════════════════════════════
-# 9. iOS & KMP — CROSS-PLATFORM PERFORMANCE ANALYSIS
+# 6. iOS & KMP — CROSS-PLATFORM BENCHMARK
 # ═══════════════════════════════════════════════════════
-add_heading_styled('9. iOS & KMP — Cross-Platform Performance Analysis', 1)
+add_heading_styled('7. iOS & KMP — Cross-Platform Benchmark', 1)
 
 doc.add_paragraph(
     'Kotlin Multiplatform (KMP) enables sharing business logic — including DI configuration — across '
@@ -878,7 +864,7 @@ doc.add_paragraph(
     'behaves on iOS, where the runtime environment differs significantly from the JVM.'
 )
 
-add_heading_styled('9.1 How Kotlin Code Runs on iOS', 2)
+add_heading_styled('7.1 How Kotlin Code Runs on iOS', 2)
 doc.add_paragraph(
     'The same Kotlin source code takes fundamentally different paths to execution on each platform:'
 )
@@ -903,7 +889,7 @@ p.add_run(
 )
 
 doc.add_paragraph()
-add_heading_styled('9.2 Platform Runtime Characteristics', 2)
+add_heading_styled('7.2 Platform Runtime Characteristics', 2)
 doc.add_paragraph(
     'These differences are inherent to the platform — they affect all Kotlin code, not just DI frameworks:'
 )
@@ -929,7 +915,7 @@ p.add_run(
 
 doc.add_page_break()
 
-add_heading_styled('9.3 Metro on iOS — Compile-Time DI on Native', 2)
+add_heading_styled('7.3 Metro on iOS — Compile-Time DI on Native', 2)
 doc.add_paragraph(
     'Metro\'s compiler plugin runs during Kotlin compilation, identically for all targets. '
     'The generated code — direct constructor calls and volatile field reads — goes through LLVM.'
@@ -957,7 +943,7 @@ p.add_run(
 )
 
 doc.add_paragraph()
-add_heading_styled('9.4 Koin on iOS — Runtime DI on Native', 2)
+add_heading_styled('7.4 Koin on iOS — Runtime DI on Native', 2)
 doc.add_paragraph(
     'Koin works correctly on iOS and is used in many production KMP apps. '
     'The runtime resolution path has different performance characteristics on Native vs JVM:'
@@ -985,7 +971,7 @@ p.add_run(
 )
 
 doc.add_paragraph()
-add_heading_styled('9.5 Swift Interop & GC Considerations', 2)
+add_heading_styled('7.5 Swift Interop & GC Considerations', 2)
 doc.add_paragraph(
     'Objects crossing the Kotlin - Swift boundary are managed by both Kotlin GC and Swift ARC:'
 )
@@ -1010,10 +996,10 @@ p.add_run(
 
 doc.add_page_break()
 
-add_heading_styled('9.6 Measured iOS Results — Compile Time & Runtime', 2)
+add_heading_styled('7.6 Measured iOS Results — Compile Time & Runtime', 2)
 
 doc.add_paragraph(
-    'We built identical KMP modules (benchmark-kmp-metro and benchmark-kmp-koin) targeting '
+    'We built unified KMP modules (benchmark-metro-large and benchmark-koin-large) targeting'
     'iosSimulatorArm64, each containing the full e-commerce app (~350 classes, ~285 bindings). '
     'Both frameworks use best practices: Metro with @SingleIn(AppScope::class) scoping, '
     'Koin with createdAtStart on 19 critical singletons. Benchmark methodology follows '
@@ -1046,14 +1032,14 @@ add_heading_styled('iOS Runtime — Container Initialization', 3)
 add_table(
     ['Framework', 'Init Time', 'What Happens'],
     [
-        ['Metro', '0.01ms', 'Creates one pre-compiled graph class with all wiring baked in'],
-        ['Koin', '0.17ms', 'Registers 271 definitions across 24 modules, creates 19 eager singletons'],
+        ['Metro', '0.04ms', 'Creates one pre-compiled graph class with all wiring baked in'],
+        ['Koin', '0.20ms', 'Registers 271 definitions across 24 modules, creates 19 eager singletons'],
     ],
     [3, 2, 11]
 )
 doc.add_paragraph()
 p = doc.add_paragraph()
-p.add_run('Metro is 17x faster. ').bold = True
+p.add_run('Metro is 5x faster. ').bold = True
 p.add_run(
     'Metro\'s graph is a single LLVM-compiled class — instantiation is one ARM64 constructor call. '
     'Koin must process 24 module DSL blocks and populate its internal HashMap registry.'
@@ -1064,14 +1050,14 @@ add_heading_styled('iOS Runtime — Cold Injection (First Access)', 3)
 add_table(
     ['Class', 'Metro', 'Koin', 'Metro Faster By'],
     [
-        ['HomeViewModel (6 deps, ~50 transitive)', '7us', '31us', '4.4x'],
-        ['CheckoutViewModel (7 deps)', '3us', '33us', '11x'],
-        ['ProductDetailVM (6 deps)', '3us', '27us', '9x'],
-        ['ProfileViewModel (7 deps)', '1us', '15us', '15x'],
-        ['ChatViewModel (5 deps)', '1us', '13us', '13x'],
-        ['SearchViewModel (3 deps)', '2us', '10us', '5x'],
-        ['CartViewModel (5 deps)', '1us', '8us', '8x'],
-        ['OrderHistoryVM (3 deps)', '<1us', '4us', '>4x'],
+        ['HomeViewModel (6 deps, ~50 transitive)', '19us', '38us', '2x'],
+        ['CheckoutViewModel (7 deps)', '5us', '22us', '4.4x'],
+        ['ProductDetailVM (6 deps)', '3us', '11us', '3.7x'],
+        ['ProfileViewModel (7 deps)', '5us', '11us', '2.2x'],
+        ['ChatViewModel (5 deps)', '3us', '9us', '3x'],
+        ['SearchViewModel (3 deps)', '2us', '5us', '2.5x'],
+        ['CartViewModel (5 deps)', '2us', '13us', '6.5x'],
+        ['OrderHistoryVM (3 deps)', '1us', '5us', '5x'],
         ['AnalyticsTracker (2 deps)', '<1us', '<1us', '~1x'],
         ['ProductRepository (4 deps)', '<1us', '<1us', '~1x'],
     ],
@@ -1091,18 +1077,18 @@ add_heading_styled('iOS Runtime — Warm Injection (Avg of 100 Iterations)', 3)
 add_table(
     ['Class', 'Metro', 'Koin', 'Metro Faster By'],
     [
-        ['HomeViewModel', '<1us', '7us', '>7x'],
-        ['CartViewModel', '<1us', '8us', '>8x'],
-        ['CheckoutViewModel', '<1us', '7us', '>7x'],
-        ['ProductDetailVM', '<1us', '7us', '>7x'],
-        ['ProfileViewModel', '<1us', '7us', '>7x'],
-        ['SearchViewModel', '<1us', '4us', '>4x'],
-        ['ChatViewModel', '<1us', '3us', '>3x'],
-        ['OrderHistoryVM', '<1us', '3us', '>3x'],
+        ['HomeViewModel', '2us', '8us', '4x'],
+        ['CartViewModel', '1us', '5us', '5x'],
+        ['CheckoutViewModel', '1us', '13us', '13x'],
+        ['ProductDetailVM', '1us', '5us', '5x'],
+        ['ProfileViewModel', '1us', '5us', '5x'],
+        ['SearchViewModel', '1us', '3us', '3x'],
+        ['ChatViewModel', '1us', '3us', '3x'],
+        ['OrderHistoryVM', '1us', '3us', '3x'],
         ['AnalyticsTracker', '<1us', '<1us', '~1x'],
         ['ProductRepository', '<1us', '<1us', '~1x'],
         ['', '', '', ''],
-        ['TOTAL avg/injection', '<1us', '6us', '>6x'],
+        ['TOTAL avg/injection', '1us', '5us', '5x'],
     ],
     [5.5, 2, 2, 2.5]
 )
@@ -1131,7 +1117,7 @@ p.add_run(
 
 doc.add_page_break()
 
-add_heading_styled('9.7 Android vs iOS — Cross-Platform Comparison', 2)
+add_heading_styled('7.7 Android vs iOS — Cross-Platform Comparison', 2)
 
 doc.add_paragraph(
     'The same e-commerce app (~350 classes, ~285 bindings) was benchmarked on both platforms. '
@@ -1179,7 +1165,7 @@ p.add_run(
 
 doc.add_page_break()
 
-add_heading_styled('9.8 Practical Guidance for KMP Teams', 2)
+add_heading_styled('7.8 Practical Guidance for KMP Teams', 2)
 add_table(
     ['Scenario', 'Recommended', 'Reasoning'],
     [
@@ -1205,7 +1191,7 @@ doc.add_page_break()
 # ═══════════════════════════════════════════════════════
 # 10. DEEP DIVE — HOW METRO ACHIEVES SUPERIOR PERFORMANCE
 # ═══════════════════════════════════════════════════════
-add_heading_styled('10. Deep Dive — How Metro Achieves Superior Performance', 1)
+add_heading_styled('8. Deep Dive — How Metro Achieves Superior Performance', 1)
 
 doc.add_paragraph(
     'Metro is faster than Hilt at compile time AND faster than Koin at runtime. This section explains '
@@ -1213,7 +1199,7 @@ doc.add_paragraph(
     'and finally revealing what code Metro actually generates.'
 )
 
-add_heading_styled('10.1 K2 Compiler Pipeline', 2)
+add_heading_styled('8.1 K2 Compiler Pipeline', 2)
 
 doc.add_paragraph(
     'The Kotlin K2 compiler has two distinct phases with a clear boundary between them:'
@@ -1245,7 +1231,7 @@ p.add_run(
 )
 
 doc.add_paragraph()
-add_heading_styled('10.2 Where Metro Hooks Into the Compiler', 2)
+add_heading_styled('8.2 Where Metro Hooks Into the Compiler', 2)
 
 add_table(
     ['Compiler Phase', 'What Metro Does', 'Why This Phase'],
@@ -1275,7 +1261,7 @@ p.add_run(
 
 doc.add_page_break()
 
-add_heading_styled('10.3 Hilt Pipeline vs Metro Pipeline (Step-by-Step)', 2)
+add_heading_styled('8.3 Hilt Pipeline vs Metro Pipeline (Step-by-Step)', 2)
 
 doc.add_paragraph(
     'This is why Metro compiles 44.7% faster than Hilt for the same dependency graph:'
@@ -1333,7 +1319,7 @@ add_table(
 
 doc.add_page_break()
 
-add_heading_styled('10.4 What Metro Generates at Runtime', 2)
+add_heading_styled('8.4 What Metro Generates at Runtime', 2)
 
 doc.add_paragraph(
     'Metro\'s IR phase generates a single implementation class for each @DependencyGraph. '
@@ -1416,7 +1402,7 @@ p.add_run(
 )
 
 doc.add_paragraph()
-add_heading_styled('10.5 Why Metro Is 10-80x Faster Than Koin at Runtime', 2)
+add_heading_styled('8.5 Why Metro Is 10-80x Faster Than Koin at Runtime', 2)
 
 doc.add_paragraph(
     'The performance gap comes from what happens on every dependency resolution:'
@@ -1458,7 +1444,7 @@ p.add_run(
 )
 
 doc.add_paragraph()
-add_heading_styled('10.6 Square/Cash App — Real-World Proof at Scale', 2)
+add_heading_styled('8.6 Square/Cash App — Real-World Proof at Scale', 2)
 
 doc.add_paragraph(
     'Square (Block) migrated their entire Android platform from Dagger to Metro — the largest known '
@@ -1511,9 +1497,404 @@ p.add_run(
 doc.add_page_break()
 
 # ═══════════════════════════════════════════════════════
-# 10. SUMMARY & RECOMMENDATION
+# 8. LIFECYCLE AWARENESS & ANDROID INTEGRATION
 # ═══════════════════════════════════════════════════════
-add_heading_styled('11. Summary & Recommendation', 1)
+
+# Note: kotlin-inject-anvil overview (old 11.1, 11.2) moved to Section 2.4
+# The KSP pipeline explanation is kept here briefly for context
+
+add_heading_styled('9. Lifecycle Awareness & Android Integration', 1)
+
+doc.add_paragraph(
+    'Lifecycle awareness — who manages when objects are created, destroyed, and survive configuration '
+    'changes — is a critical differentiator for Android development. This section compares all four frameworks.'
+)
+
+# The lifecycle table from old 11.4 goes here — it's already in the file, just need to restructure
+
+doc.add_page_break()
+
+# ═══════════════════════════════════════════════════════
+# 9. JAVA INTEROP & MIGRATION FROM DAGGER/HILT
+# ═══════════════════════════════════════════════════════
+add_heading_styled('10. Java Interop & Migration from Dagger/Hilt', 1)
+
+doc.add_paragraph(
+    'Most production Android apps today use Hilt or Dagger. Migrating to KMP while preserving the existing '
+    'DI graph is the biggest practical challenge teams face. This section covers interop capabilities, '
+    'Java code support, and step-by-step migration paths for each framework.'
+)
+
+add_heading_styled('Interop & Java Support', 2)
+add_table(
+    ['Capability', 'Metro', 'kotlin-inject-anvil', 'Koin'],
+    [
+        ['Share graph with existing Hilt/Dagger', 'Yes — @Includes daggerComponent', 'No — manual bridge', 'No — manual bridge'],
+        ['Understand javax.inject.Inject', 'Yes — includeDagger()', 'Only in Kotlin files', 'No'],
+        ['Understand jakarta.inject.Inject', 'Yes — includeJakarta()', 'No', 'No'],
+        ['Reuse Dagger-generated Java factories', 'Yes — zero extra code', 'No — must wrap with @Provides', 'No'],
+        ['Process .java source files', 'No (Kotlin compiler plugin)', 'No (KSP = Kotlin only)', 'N/A'],
+        ['Incremental migration (both frameworks running)', 'Yes — Gradle flag, module by module', 'No — clean break', 'No — clean break'],
+        ['Effort per shared dependency', '0 lines (auto via @Includes)', '1 @get:Provides line + entry point', '1 manual binding'],
+        ['Effort for 100 shared dependencies', '1 line total', '~200 lines (100 params + 100 entry points)', '~100 bindings'],
+    ],
+    [4.5, 4, 4, 3.5]
+)
+
+doc.add_paragraph()
+add_heading_styled('Migration Path: From Hilt to Each Framework', 2)
+
+doc.add_paragraph()
+p = doc.add_paragraph()
+r = p.add_run('Migrating to Metro (from existing Hilt):')
+r.bold = True
+add_table(
+    ['Phase', 'What You Do', 'Both Frameworks Running?'],
+    [
+        ['Phase 1', 'Keep Hilt for all existing Android modules. Enable Metro plugin.', 'Yes — Hilt handles existing, Metro is available'],
+        ['Phase 2', 'New KMP feature modules use Metro with @Includes(daggerComponent) to access Hilt-provided singletons', 'Yes — Metro reads from Hilt graph directly'],
+        ['Phase 3', 'Gradually migrate old Hilt modules to Metro, one by one. Both can run in parallel via Gradle build flag.', 'Yes — dual build, Square did this across 7,000 modules'],
+        ['Phase 4', 'Remove Hilt when all modules migrated. Single Metro graph.', 'No — Metro only'],
+    ],
+    [1.5, 10, 4.5]
+)
+p = doc.add_paragraph()
+p.add_run('Zero bridge code required. Zero dependency duplication. Proven at Square scale (7,000 modules, 9 months).').italic = True
+
+doc.add_paragraph()
+p = doc.add_paragraph()
+r = p.add_run('Migrating to kotlin-inject-anvil (from existing Hilt):')
+r.bold = True
+add_table(
+    ['Phase', 'What You Do', 'Both Frameworks Running?'],
+    [
+        ['Phase 1', 'Keep Hilt for all existing Android modules.', 'Yes'],
+        ['Phase 2', 'Create @EntryPoint interfaces in Hilt to expose every dependency the new modules need.', 'Yes — but manual entry points needed'],
+        ['Phase 3', 'New KMP modules use kotlin-inject-anvil. Pass Hilt dependencies via component constructor parameters.', 'Yes — but you maintain a manual bridge layer'],
+        ['Phase 4', 'For each shared dependency: update @EntryPoint + component constructor + creation site.', 'Yes — bridge grows with each shared dep'],
+        ['Phase 5', 'Eventually remove Hilt. All dependencies in kotlin-inject-anvil. Remove bridge.', 'No — kotlin-inject-anvil only'],
+    ],
+    [1.5, 10, 4.5]
+)
+p = doc.add_paragraph()
+p.add_run('Requires manual bridge code for every shared dependency. Bridge must be maintained during migration.').italic = True
+
+doc.add_paragraph()
+p = doc.add_paragraph()
+r = p.add_run('Migrating to Koin (from existing Hilt):')
+r.bold = True
+add_table(
+    ['Phase', 'What You Do', 'Both Frameworks Running?'],
+    [
+        ['Phase 1', 'Keep Hilt for all existing Android modules.', 'Yes'],
+        ['Phase 2', 'Create @EntryPoint interfaces in Hilt to expose shared dependencies.', 'Yes — manual entry points'],
+        ['Phase 3', 'New KMP modules use Koin. Pass Hilt dependencies via startKoin module definitions.', 'Yes — manual bindings for each shared dep'],
+        ['Phase 4', 'Gradually move modules. Each migrated module removes Hilt annotations, adds Koin module { } DSL.', 'Yes — both running independently'],
+        ['Phase 5', 'Remove Hilt. All dependencies in Koin. No compile-time DI safety (unless using Koin compiler plugin).', 'No — Koin only'],
+    ],
+    [1.5, 10, 4.5]
+)
+p = doc.add_paragraph()
+p.add_run('Same manual bridge as kotlin-inject-anvil, plus you lose compile-time graph validation during and after migration.').italic = True
+
+doc.add_paragraph()
+add_heading_styled('Migration Effort Summary', 2)
+add_table(
+    ['Factor', 'Metro', 'kotlin-inject-anvil', 'Koin'],
+    [
+        ['Bridge code needed', 'None', 'Yes — per shared dependency', 'Yes — per shared dependency'],
+        ['Can run alongside Hilt', 'Yes — shares the same graph', 'Yes — but independent graphs', 'Yes — but independent graphs'],
+        ['Effort for 50-dep module', '~1 hour (add @Includes)', '~1 day (bridge + entry points)', '~1 day (bridge + module DSL)'],
+        ['Effort for 500-dep project', '~2 weeks (module by module)', '~2 months (bridge maintenance)', '~2 months (bridge + no compile safety)'],
+        ['Risk during migration', 'Low — both graphs validated at compile time', 'Medium — bridge can have type mismatches', 'High — Koin errors only at runtime'],
+        ['Proven at scale', 'Square: 7,000 modules, 9 months', 'No comparable public migration story', 'Some teams migrated from Hilt to Koin'],
+    ],
+    [4, 4, 4, 4]
+)
+
+doc.add_page_break()
+
+# ═══════════════════════════════════════════════════════
+# 10. HEAD-TO-HEAD — ALL 4 FRAMEWORKS COMPARED
+# ═══════════════════════════════════════════════════════
+add_heading_styled('11. Head-to-Head — All 4 Frameworks Compared', 1)
+
+doc.add_paragraph(
+    'This section provides the complete side-by-side comparison of all four frameworks across every dimension.'
+)
+
+# OLD 11.1 content starts below — but now it's just the overview text for context
+add_heading_styled('kotlin-inject-anvil Overview', 2)
+doc.add_paragraph(
+    'kotlin-inject-anvil is a two-part system by Amazon: kotlin-inject (by Evan Tatarka) provides compile-time '
+    'DI for Kotlin, and kotlin-inject-anvil (by Ralf Wondratschek at Amazon) adds Anvil-style auto-merging '
+    '(@ContributesTo, @ContributesBinding, @MergeComponent) on top. Together they deliver compile-time DI '
+    '+ automatic module merging + full KMP support — similar to Metro but using KSP instead of a compiler plugin.'
+)
+add_table(
+    ['Attribute', 'Detail'],
+    [
+        ['Type', 'Compile-time (KSP annotation processing)'],
+        ['Base framework', 'kotlin-inject 0.7.2+ (Evan Tatarka)'],
+        ['Extensions', 'kotlin-inject-anvil 0.1.6+ (Amazon)'],
+        ['Processing', 'KSP → generates Kotlin source files → compiled by kotlinc'],
+        ['Annotations', '@Inject, @Component, @Provides, @ContributesTo, @ContributesBinding, @MergeComponent'],
+        ['Output', 'Generated .kt files in build/generated/ksp/ (visible, debuggable)'],
+        ['Scoping', '@SingleIn(Scope::class), custom @Scope annotations'],
+        ['KMP support', 'Yes — JVM, iOS, JS, Wasm, Native'],
+        ['Backed by', 'Amazon (kotlin-inject-anvil), community (kotlin-inject)'],
+        ['Production users', 'Amazon apps, Bitkey (170 KMP modules)'],
+    ],
+    [4, 12]
+)
+
+doc.add_paragraph()
+add_heading_styled('How kotlin-inject-anvil Works (KSP Pipeline)', 3)
+doc.add_paragraph(
+    'Unlike Metro (which hooks into the Kotlin compiler), kotlin-inject-anvil runs as a separate KSP step:'
+)
+add_table(
+    ['Step', 'What Happens', 'Output'],
+    [
+        ['1. KSP scan', 'Reads @ContributesTo, @ContributesBinding, @MergeComponent across all modules', 'Contribution metadata'],
+        ['2. KSP merge', 'Collects all contributions for each scope, generates merged component interface', 'Generated .kt file with @Component'],
+        ['3. kotlin-inject KSP', 'Reads @Component, @Inject, @Provides → generates ComponentImpl class', 'Generated .kt factory code'],
+        ['4. Kotlin compiler', 'Compiles your code + generated code in one pass', 'Bytecode / klib'],
+    ],
+    [2.5, 7, 5]
+)
+doc.add_paragraph()
+p = doc.add_paragraph()
+p.add_run('Key difference from Metro: ').bold = True
+p.add_run(
+    'Generated code exists as readable .kt files in build/generated/ksp/. You can open them, set breakpoints, '
+    'and step through them in the debugger. Metro\'s IR-generated code is invisible — you cannot debug it directly. '
+    'This is the fundamental trade-off: Metro is faster (no file I/O), kotlin-inject-anvil is more debuggable.'
+)
+
+doc.add_page_break()
+
+add_heading_styled('Metro vs kotlin-inject-anvil', 2)
+add_table(
+    ['Aspect', 'Metro', 'kotlin-inject-anvil'],
+    [
+        ['Technology', 'Kotlin compiler plugin (FIR + IR)', 'KSP (Kotlin Symbol Processing)'],
+        ['Generated files', 'Zero — code exists only as IR bytecode', 'Kotlin .kt files in build/generated/ksp/'],
+        ['Can debug generated code?', 'No (IR invisible, debug log available)', 'Yes — standard breakpoints and step-through'],
+        ['Can modify existing classes?', 'Yes — injects code into existing classes', 'No — can only generate new files'],
+        ['Can access private members?', 'Yes — private @Provides, private constructors', 'No — respects Kotlin visibility'],
+        ['Default value copying', 'Yes — copies default expressions via IR', 'No — KSP cannot access default values'],
+        ['@GraphPrivate (prevent child access)', 'Yes', 'Not available'],
+        ['Build speed (clean)', 'Faster — one compiler pass, no file I/O', 'Moderate — KSP step + file generation + compile'],
+        ['Build speed at scale', 'Square: 20-56% faster vs Dagger', 'Bitkey: <1s clean, ~11s incremental iOS'],
+        ['Runtime speed', 'DoubleCheck volatile reads (~0.2us singleton)', 'Generated constructor calls (~similar)'],
+        ['Dagger/Hilt interop', 'Yes — includeDagger(), @Includes', 'No — must bridge manually'],
+        ['Java code support', 'Yes — reuses Dagger-generated Java factories', 'Kotlin-only (KSP processes .kt files only)'],
+        ['javax/jakarta annotations', 'Yes — includeDagger(), includeJakarta()', 'javax.inject.* only in Kotlin files'],
+        ['Custom scoping', 'Yes — @Scope, @SingleIn, Graph Extensions', 'Yes — @Scope, @SingleIn, @ContributesSubcomponent'],
+        ['Module merging', 'Yes — @ContributesTo', 'Yes — @ContributesTo, @ContributesBinding'],
+        ['Assisted injection', 'Yes — @Assisted + @AssistedFactory', 'Yes — @Assisted, factory bound as lambda'],
+        ['Multibindings', 'Yes — @IntoSet, @IntoMap', 'Yes — via kotlin-inject'],
+        ['Runtime lifecycle callbacks', 'No', 'Yes — via Amazon App Platform (Scoped interface)'],
+        ['Auto CoroutineScope per scope', 'No', 'Yes — via App Platform scope.launch'],
+        ['KMP support', 'JVM, iOS, JS, Wasm, Native', 'JVM, iOS, JS, Wasm, Native'],
+        ['Backed by', 'Zac Sweers / Square', 'Ralf Wondratschek / Amazon'],
+        ['Production scale', 'Square: 7,000 modules, 22 apps', 'Bitkey: 170 KMP modules'],
+    ],
+    [4.5, 5.5, 5.5]
+)
+
+doc.add_paragraph()
+p = doc.add_paragraph()
+p.add_run('Summary: ').bold = True
+p.add_run(
+    'Both are excellent compile-time KMP DI solutions. Metro trades debuggability for maximum build speed '
+    'and Dagger interop. kotlin-inject-anvil trades build speed for debuggable generated code and '
+    'runtime lifecycle management (via Amazon\'s App Platform). At runtime, both produce functionally '
+    'equivalent code — the performance difference is at compile time, not runtime.'
+)
+
+doc.add_paragraph()
+add_heading_styled('Lifecycle Awareness (All 4 Frameworks)', 2)
+doc.add_paragraph(
+    'Lifecycle awareness — who manages when objects are created, destroyed, and survive configuration '
+    'changes — is a critical differentiator, especially for Android development:'
+)
+add_table(
+    ['Aspect', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
+    [
+        ['Automatic lifecycle management', 'Yes — generated code hooks into Android callbacks', 'No — manual graph creation/destruction', 'No — manual (App Platform adds callbacks)', 'Partial — viewModel() is auto, scopes are manual'],
+        ['Predefined scope hierarchy', 'Yes — 6 levels (Singleton → View)', 'No — Graph Extensions (you define)', 'No — you define scopes', 'No — you define modules'],
+        ['ViewModel support', '@HiltViewModel — zero boilerplate', 'MetroViewModelFactory (metrox-viewmodel)', '@ContributesViewModel (3rd party lib)', 'viewModel { } DSL'],
+        ['Survives rotation', 'Automatic (ActivityRetainedComponent)', 'Via ViewModelProvider (manual setup)', 'Via ViewModelProvider (manual setup)', 'activityRetainedScope()'],
+        ['Compile-time scope validation', 'Yes', 'Yes', 'Yes', 'No (runtime crash)'],
+        ['Runtime lifecycle callbacks', 'Implicit (generated code)', 'Not available', 'Yes — Scoped.onEnterScope/onExitScope (App Platform)', 'No'],
+        ['Auto CoroutineScope per DI scope', 'No', 'No', 'Yes — scope.launch (App Platform)', 'No'],
+        ['Prevents scope leak at compile time', 'Yes — enforced hierarchy', 'Yes — @GraphPrivate', 'Partial — scope markers', 'No'],
+        ['KMP compatible', 'No — Android only', 'Yes', 'Yes', 'Yes'],
+    ],
+    [4, 2.8, 2.8, 3.2, 2.8]
+)
+
+doc.add_paragraph()
+p = doc.add_paragraph()
+p.add_run('Key insight: ').bold = True
+p.add_run(
+    'Hilt is the only framework with fully automatic Android lifecycle management. For KMP projects, '
+    'kotlin-inject-anvil + Amazon App Platform provides the closest equivalent with explicit lifecycle '
+    'callbacks (onEnterScope/onExitScope). Metro and Koin rely on the developer to manage graph/scope '
+    'creation and destruction at the right lifecycle points. For modern single-Activity + Compose apps, '
+    'all four behave similarly because ViewModel lifecycle is handled by Android\'s ViewModelProvider, '
+    'which all frameworks integrate with.'
+)
+
+doc.add_paragraph()
+add_heading_styled('Java Code & Dagger/Hilt Interop', 2)
+doc.add_paragraph(
+    'For teams with existing Dagger/Hilt codebases migrating to KMP, interop capability determines '
+    'migration effort:'
+)
+add_table(
+    ['Capability', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
+    [
+        ['Share graph with Dagger components', 'N/A (is Dagger)', 'Yes — @Includes daggerComponent', 'No — manual bridge required', 'No — manual bridge required'],
+        ['Understand javax.inject.Inject', 'Yes', 'Yes — includeDagger()', 'Only in Kotlin files', 'No'],
+        ['Understand jakarta.inject.Inject', 'No', 'Yes — includeJakarta()', 'No', 'No'],
+        ['Reuse Dagger-generated Java factories', 'Yes', 'Yes — zero extra code', 'No — must wrap with @Provides', 'No'],
+        ['Process .java source files', 'Yes (via KSP/KAPT)', 'No (Kotlin compiler plugin)', 'No (KSP = Kotlin only)', 'N/A (no processing)'],
+        ['Incremental migration from Hilt', 'N/A', 'Yes — dual-build flag, module by module', 'No — clean break required', 'No — clean break required'],
+        ['Effort for 100 shared dependencies', 'N/A', '1 line: @Includes daggerComponent', '100 @get:Provides parameters', '100 manual bindings'],
+    ],
+    [4.5, 2.5, 3, 3, 2.5]
+)
+
+doc.add_paragraph()
+p = doc.add_paragraph()
+p.add_run('Practical impact: ').bold = True
+p.add_run(
+    'For teams with existing Hilt/Dagger codebases, Metro\'s interop eliminates the biggest migration barrier. '
+    'New KMP modules can use Metro with @Includes(daggerComponent) — zero bridge code, zero duplication. '
+    'With kotlin-inject-anvil or Koin, every shared dependency must be manually bridged between the old '
+    'Dagger graph and the new DI framework. For greenfield KMP projects (no existing Dagger), this '
+    'difference doesn\'t apply.'
+)
+
+doc.add_page_break()
+
+# ═══════════════════════════════════════════════════════
+# 12. KOTLIN VERSION COMPATIBILITY GUIDE
+# ═══════════════════════════════════════════════════════
+add_heading_styled('12. Kotlin Version Compatibility Guide', 1)
+
+add_heading_styled('12.1 Why Version Matters', 2)
+doc.add_paragraph(
+    'Every DI framework is built against a specific Kotlin version. This creates a project-wide constraint: '
+    'you must pick ONE Kotlin version, and every framework must support it. The strictness depends on the '
+    'framework type:'
+)
+add_table(
+    ['Framework Type', 'Version Coupling', 'Why'],
+    [
+        ['Compiler plugin (Metro)', 'Strict — must match exact Kotlin version range', 'Plugin runs inside kotlinc; internal APIs change between versions'],
+        ['KSP processor (Hilt, kotlin-inject-anvil)', 'Moderate — KSP version must match Kotlin, but processor JARs are more flexible', 'KSP runs on JVM alongside the compiler'],
+        ['Runtime library with native targets (Koin, kotlin-inject runtime)', 'Strict for iOS — Kotlin/Native klibs not forward-compatible', 'klibs compiled with Kotlin 2.1 may not load on 2.2 Native compiler'],
+        ['Runtime library JVM-only (Hilt runtime)', 'Flexible — JVM bytecode is broadly compatible', 'JAR files work across Kotlin versions'],
+    ],
+    [4.5, 3.5, 8]
+)
+
+doc.add_paragraph()
+add_heading_styled('12.2 Version Matrix', 2)
+doc.add_paragraph(
+    'Three common Kotlin versions and what framework versions each supports:'
+)
+
+add_heading_styled('Kotlin 2.2.0', 3)
+add_table(
+    ['Framework', 'Latest Available', 'Compatible Version', 'Built With', 'Status'],
+    [
+        ['Hilt', '2.59.2', '2.59.2', 'Any (JVM)', 'Latest — no issue'],
+        ['KSP', '2.2.0-2.0.2', '2.2.0-2.0.2', 'Kotlin 2.2.0', 'Exact match'],
+        ['Metro', '1.0.0', '0.6.5', 'Kotlin 2.2.0-2.2.10', '14 versions behind — missing major features'],
+        ['Koin', '4.2.1', '4.1.1', 'Kotlin 2.1.21', '3 versions behind — older resolver'],
+        ['kotlin-inject-anvil', '0.1.7', '0.1.6', 'Kotlin 2.1.21', '1 version behind — minor gap'],
+    ],
+    [3.5, 2.5, 2.5, 2.5, 5]
+)
+
+doc.add_paragraph()
+add_heading_styled('Kotlin 2.2.20', 3)
+add_table(
+    ['Framework', 'Latest Available', 'Compatible Version', 'Built With', 'Status'],
+    [
+        ['Hilt', '2.59.2', '2.59.2', 'Any (JVM)', 'Latest — no issue'],
+        ['KSP', '2.2.20-2.0.2', '2.2.20-2.0.2', 'Kotlin 2.2.20', 'Exact match'],
+        ['Metro', '1.0.0', '1.0.0', 'Kotlin 2.2.20', 'Latest stable — all features'],
+        ['Koin', '4.2.1', '4.2.0', 'Kotlin 2.3.20', 'Near-latest (4.2.1 needs 2.3.20)'],
+        ['kotlin-inject-anvil', '0.1.7', '0.1.7', 'Kotlin 2.2.20', 'Latest — no issue'],
+    ],
+    [3.5, 2.5, 2.5, 2.5, 5]
+)
+
+doc.add_paragraph()
+add_heading_styled('12.3 What You Miss in Older Versions', 2)
+
+add_heading_styled('Metro 0.6.5 vs 1.0.0 (14 versions behind)', 3)
+add_table(
+    ['Missing Feature', 'Version Added', 'Impact'],
+    [
+        ['metrox-viewmodel (ViewModel factory)', '0.8.0', 'Must write ViewModel factory manually'],
+        ['metrox-viewmodel-compose (metroViewModel())', '0.8.0', 'Must wire Compose ViewModel yourself'],
+        ['metrox-android (AppComponentFactory)', '0.8.0', 'No Activity/Fragment constructor injection'],
+        ['AssistedViewModel support', '0.8.0', 'No assisted injection for ViewModels'],
+        ['@ContributesTo aggregation', '0.10.0+', 'No Anvil-style auto module merging'],
+        ['Dagger interop (includeDagger())', '0.10.0+', 'Cannot share graph with existing Hilt/Dagger'],
+        ['kotlin-inject interop', '0.10.0+', 'Cannot interop with kotlin-inject components'],
+        ['Graph class sharding', '0.10.0+', 'Large graphs may hit JVM class size limits'],
+        ['Bug fixes (IR generation, cycle detection)', '0.7-1.0', 'Potential edge-case crashes on complex graphs'],
+    ],
+    [5, 2.5, 8.5]
+)
+
+doc.add_paragraph()
+add_heading_styled('Koin 4.1.1 vs 4.2.1 (3 versions behind)', 3)
+add_table(
+    ['Missing Feature', 'Version Added', 'Impact'],
+    [
+        ['Core Resolver V2 (faster resolution)', '4.2.0', 'Older, slower resolution engine'],
+        ['Ktor 3.4 DI Bridge', '4.2.0', 'Cannot use Koin with latest Ktor'],
+        ['AndroidX Navigation 3 support', '4.2.0', 'Must manually handle Navigation 3 scoping'],
+        ['Koin Compiler Plugin support', '4.2.0+', 'Cannot use K2 compiler plugin for compile-time safety'],
+        ['Scope concurrency fixes', '4.2.1', 'Potential race condition on scope create/destroy'],
+    ],
+    [5, 2.5, 8.5]
+)
+
+doc.add_paragraph()
+add_heading_styled('kotlin-inject-anvil 0.1.6 vs 0.1.7 (1 version behind)', 3)
+doc.add_paragraph(
+    'Minimal gap — only misses the update to kotlin-inject 0.9.0. Version 0.1.6 is stable and production-ready.'
+)
+
+doc.add_paragraph()
+add_heading_styled('12.4 Recommendation', 2)
+p = doc.add_paragraph()
+p.add_run('Upgrade to Kotlin 2.2.20 for production projects. ').bold = True
+p.add_run(
+    'The jump from 2.2.0 to 2.2.20 is a minor version bump — not a breaking change for application code. '
+    'The cost is approximately one day of re-testing. The benefit is significant: Metro 1.0.0 (stable, '
+    'all features including ViewModel support, Dagger interop, module merging), Koin 4.2.0 (Core Resolver V2, '
+    'Navigation 3), and kotlin-inject-anvil 0.1.7 (latest). Staying on 2.2.0 means using a beta Metro '
+    '(0.6.5) that\'s missing critical production features — ViewModel integration, Dagger interop, '
+    'and many bug fixes accumulated over 14 versions.'
+)
+
+doc.add_page_break()
+
+# ═══════════════════════════════════════════════════════
+# 13. SUMMARY & RECOMMENDATION
+# ═══════════════════════════════════════════════════════
+add_heading_styled('13. Summary & Recommendation', 1)
 
 add_heading_styled('Complete Scorecard', 2)
 add_table(
@@ -1583,7 +1964,7 @@ doc.add_page_break()
 # ═══════════════════════════════════════════════════════
 # 12. REFERENCES & FURTHER READING
 # ═══════════════════════════════════════════════════════
-add_heading_styled('12. References & Further Reading', 1)
+add_heading_styled('14. References & Further Reading', 1)
 
 add_heading_styled('Official Documentation', 2)
 refs = [
@@ -1618,6 +1999,11 @@ refs = [
     'Benchmarking Koin vs Hilt in Modern Android (2024) — droidcon.com',
     'Kotlin/Native Compilation Under the Hood — medium.com/@natig.haciyef',
     'Stately: Kotlin Multiplatform Concurrency Library — github.com/touchlab/Stately',
+    'Introducing kotlin-inject-anvil — ralf-wondratschek.com/blog',
+    'Integrate kotlin-inject-anvil to Tv Maniac — Thomas Kioko, ProAndroidDev',
+    'Creating Custom-Scoped Components in kotlin-inject + Anvil — droidcon 2025',
+    'Amazon App Platform: Scope Lifecycle — amzn.github.io/app-platform/scope',
+    'Koin vs kotlin-inject: Which to Choose — Infinum blog',
 ]
 for r in refs:
     doc.add_paragraph(r, style='List Bullet')

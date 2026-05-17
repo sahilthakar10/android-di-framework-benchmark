@@ -6,8 +6,7 @@ import com.codeint.shopapp.hilt.core.logging.AppLogger
 import javax.inject.Inject
 
 class GetPaymentListUseCase @Inject constructor(
-    private val repository: PaymentRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: PaymentRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(page: Int = 0, pageSize: Int = 20): PagedResult<PaymentDomainModel> {
         analytics.track("get_payment_list", mapOf("page" to page))
@@ -16,8 +15,7 @@ class GetPaymentListUseCase @Inject constructor(
 }
 
 class GetPaymentDetailUseCase @Inject constructor(
-    private val repository: PaymentRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: PaymentRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(id: String): PaymentDomainModel? {
         analytics.track("get_payment_detail", mapOf("id" to id))
@@ -25,44 +23,20 @@ class GetPaymentDetailUseCase @Inject constructor(
     }
 }
 
-class CreatePaymentUseCase @Inject constructor(
-    private val repository: PaymentRepository,
-    private val logger: AppLogger
-) {
-    fun execute(model: PaymentDomainModel): PaymentDomainModel {
-        logger.info("PaymentUseCase", "Creating payment: ${model.name}")
-        return repository.create(model)
-    }
+class CreatePaymentUseCase @Inject constructor(private val repository: PaymentRepository, private val logger: AppLogger) {
+    fun execute(model: PaymentDomainModel) = repository.create(model)
 }
 
-class UpdatePaymentUseCase @Inject constructor(
-    private val repository: PaymentRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String, model: PaymentDomainModel): PaymentDomainModel {
-        logger.info("PaymentUseCase", "Updating payment: $id")
-        return repository.update(id, model)
-    }
+class UpdatePaymentUseCase @Inject constructor(private val repository: PaymentRepository, private val logger: AppLogger) {
+    fun execute(id: String, model: PaymentDomainModel) = repository.update(id, model)
 }
 
-class DeletePaymentUseCase @Inject constructor(
-    private val repository: PaymentRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String): Boolean {
-        logger.info("PaymentUseCase", "Deleting payment: $id")
-        return repository.delete(id)
-    }
+class DeletePaymentUseCase @Inject constructor(private val repository: PaymentRepository, private val logger: AppLogger) {
+    fun execute(id: String) = repository.delete(id)
 }
 
-class SearchPaymentUseCase @Inject constructor(
-    private val repository: PaymentRepository,
-    private val analytics: AnalyticsTracker
-) {
-    fun execute(query: String, page: Int = 0): PagedResult<PaymentDomainModel> {
-        analytics.track("search_payment", mapOf("query" to query))
-        return repository.search(query, page)
-    }
+class SearchPaymentUseCase @Inject constructor(private val repository: PaymentRepository, private val analytics: AnalyticsTracker) {
+    fun execute(query: String, page: Int = 0) = repository.search(query, page)
 }
 
 class ValidatePaymentUseCase @Inject constructor(private val logger: AppLogger) {
@@ -74,25 +48,16 @@ class ValidatePaymentUseCase @Inject constructor(private val logger: AppLogger) 
     }
 }
 
-class RefreshPaymentCacheUseCase @Inject constructor(
-    private val repository: PaymentRepository,
-    private val logger: AppLogger
-) {
-    fun execute() {
-        logger.info("PaymentUseCase", "Refreshing payment cache")
-        repository.clearCache()
-        repository.getAll()
-    }
+class RefreshPaymentCacheUseCase @Inject constructor(private val repository: PaymentRepository, private val logger: AppLogger) {
+    fun execute() { repository.clearCache(); repository.getAll() }
 }
 
 class GetPaymentCountUseCase @Inject constructor(private val repository: PaymentRepository) {
-    fun execute(): Int = repository.getAll().totalCount
+    fun execute() = repository.getAll().totalCount
 }
 
 class FilterPaymentUseCase @Inject constructor(private val repository: PaymentRepository) {
-    fun execute(predicate: (PaymentDomainModel) -> Boolean): List<PaymentDomainModel> {
-        return repository.getAll().items.filter(predicate)
-    }
+    fun execute(predicate: (PaymentDomainModel) -> Boolean) = repository.getAll().items.filter(predicate)
 }
 
 data class ValidationResult(val isValid: Boolean, val errors: List<String>)

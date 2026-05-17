@@ -27,6 +27,22 @@
             android:name=".RuntimeBenchmarkActivity"
             android:exported="true"
             android:theme="@style/Theme.BenchMarking" />
+        <activity
+            android:name=".HiltViewModelBenchmarkActivity"
+            android:exported="true"
+            android:theme="@style/Theme.BenchMarking" />
+        <activity
+            android:name=".HiltFullBenchmarkActivity"
+            android:exported="true"
+            android:theme="@style/Theme.BenchMarking" />
+        <activity
+            android:name=".KoinFullBenchmarkActivity"
+            android:exported="true"
+            android:theme="@style/Theme.BenchMarking" />
+        <activity
+            android:name=".MetroFullBenchmarkActivity"
+            android:exported="true"
+            android:theme="@style/Theme.BenchMarking" />
     </application>
 
 </manifest>

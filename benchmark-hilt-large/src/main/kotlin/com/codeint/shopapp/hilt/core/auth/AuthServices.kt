@@ -1,51 +1,70 @@
 package com.codeint.shopapp.hilt.core.auth
 
-import com.codeint.shopapp.hilt.core.network.*
-import com.codeint.shopapp.hilt.core.storage.*
-import com.codeint.shopapp.hilt.core.analytics.*
+import com.codeint.shopapp.hilt.core.analytics.AnalyticsTracker
+import com.codeint.shopapp.hilt.core.storage.PreferencesManager
+import com.codeint.shopapp.hilt.core.storage.SecureStorage
+import com.codeint.shopapp.hilt.core.network.HttpClient
+import com.codeint.shopapp.hilt.core.network.TokenProvider
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton class AuthManager @Inject constructor(
+interface AuthManager {
+    fun login(email: String, password: String): Boolean
+    fun logout()
+    fun isLoggedIn(): Boolean
+}
+
+interface TokenStorage {
+    fun saveTokens(access: String, refresh: String)
+    fun getAccessToken(): String?
+    fun hasValidToken(): Boolean
+    fun clear()
+}
+
+interface SessionManager {
+    fun startSession(userId: String)
+    fun getCurrentUserId(): String?
+    fun invalidate()
+}
+
+class RealAuthManager @Inject constructor(
     private val tokenStorage: TokenStorage,
     private val sessionManager: SessionManager,
     private val analyticsTracker: AnalyticsTracker
-) {
-    fun login(email: String, password: String): Boolean { analyticsTracker.track("login_attempt"); return true }
-    fun logout() { tokenStorage.clear(); sessionManager.invalidate(); analyticsTracker.track("logout") }
-    fun isLoggedIn(): Boolean = tokenStorage.hasValidToken()
+) : AuthManager {
+    override fun login(email: String, password: String): Boolean { analyticsTracker.track("login_attempt"); return true }
+    override fun logout() { tokenStorage.clear(); sessionManager.invalidate(); analyticsTracker.track("logout") }
+    override fun isLoggedIn() = tokenStorage.hasValidToken()
 }
 
-@Singleton class TokenStorage @Inject constructor(private val secureStorage: SecureStorage) {
-    fun saveTokens(access: String, refresh: String) { secureStorage.put("access_token", access); secureStorage.put("refresh_token", refresh) }
-    fun getAccessToken(): String? = secureStorage.get("access_token")
-    fun hasValidToken(): Boolean = getAccessToken() != null
-    fun clear() { secureStorage.remove("access_token"); secureStorage.remove("refresh_token") }
+class RealTokenStorage @Inject constructor(private val secureStorage: SecureStorage) : TokenStorage {
+    override fun saveTokens(access: String, refresh: String) { secureStorage.put("access_token", access) }
+    override fun getAccessToken() = secureStorage.get("access_token")
+    override fun hasValidToken() = getAccessToken() != null
+    override fun clear() { secureStorage.remove("access_token") }
 }
 
-@Singleton class SessionManager @Inject constructor(private val preferencesManager: PreferencesManager) {
-    fun startSession(userId: String) { preferencesManager.putString("current_user", userId) }
-    fun getCurrentUserId(): String? = preferencesManager.getString("current_user")
-    fun invalidate() { preferencesManager.remove("current_user") }
+class RealSessionManager @Inject constructor(private val prefs: PreferencesManager) : SessionManager {
+    override fun startSession(userId: String) { prefs.putString("current_user", userId) }
+    override fun getCurrentUserId() = prefs.getString("current_user")
+    override fun invalidate() { prefs.remove("current_user") }
 }
 
-@Singleton class BiometricAuthProvider @Inject constructor(private val secureStorage: SecureStorage) {
-    fun isAvailable(): Boolean = true
-    fun authenticate(): Boolean = true
+class BiometricAuthProvider @Inject constructor(private val secureStorage: SecureStorage) {
+    fun isAvailable() = true
+    fun authenticate() = true
 }
 
-@Singleton class OAuthManager @Inject constructor(private val httpClient: HttpClient, private val tokenStorage: TokenStorage) {
-    fun authorizeWithGoogle(): Boolean = true
-    fun authorizeWithApple(): Boolean = true
-    fun authorizeWithFacebook(): Boolean = true
+class OAuthManager @Inject constructor(private val httpClient: HttpClient, private val tokenStorage: TokenStorage) {
+    fun authorizeWithGoogle() = true
+    fun authorizeWithApple() = true
 }
 
-@Singleton class PasswordValidator @Inject constructor() {
-    fun validate(password: String): Boolean = password.length >= 8
-    fun getStrength(password: String): Int = when { password.length >= 12 -> 3; password.length >= 8 -> 2; else -> 1 }
+class PasswordValidator @Inject constructor() {
+    fun validate(password: String) = password.length >= 8
+    fun getStrength(password: String) = when { password.length >= 12 -> 3; password.length >= 8 -> 2; else -> 1 }
 }
 
-@Singleton class TwoFactorAuthManager @Inject constructor(private val httpClient: HttpClient, private val tokenStorage: TokenStorage) {
-    fun requestCode(phone: String): Boolean = true
-    fun verifyCode(code: String): Boolean = code == "123456"
+class TwoFactorAuthManager @Inject constructor(private val httpClient: HttpClient, private val tokenStorage: TokenStorage) {
+    fun requestCode(phone: String) = true
+    fun verifyCode(code: String) = code == "123456"
 }

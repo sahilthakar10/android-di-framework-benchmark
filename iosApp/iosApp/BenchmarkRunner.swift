@@ -2,6 +2,30 @@ import Foundation
 import BenchmarkMetro
 import BenchmarkKoin
 
+// MARK: - Models for layered benchmark results
+
+struct LayerResult: Identifiable {
+    let id = UUID()
+    let name: String
+    let count: Int
+    let description: String
+    let totalTimeMs: Double
+    let items: [(name: String, timeMs: Double)]
+
+    var top5Slowest: [(name: String, timeMs: Double)] {
+        Array(items.sorted { $0.timeMs > $1.timeMs }.prefix(5))
+    }
+}
+
+struct FullFrameworkResult {
+    let frameworkName: String
+    let grandTotalMs: Double
+    let totalClassCount: Int
+    let layers: [LayerResult]
+}
+
+// MARK: - Old models (kept for backward compatibility)
+
 struct InjectionEntry: Identifiable {
     let id = UUID()
     let className: String
@@ -23,6 +47,100 @@ struct ComparisonResult {
     let warmEntries: [InjectionEntry]
 }
 
+// MARK: - Full Benchmark Runner Model
+
+class FullBenchmarkRunnerModel: ObservableObject {
+    @Published var metroResult: FullFrameworkResult?
+    @Published var koinResult: FullFrameworkResult?
+    @Published var isRunningMetro = false
+    @Published var isRunningKoin = false
+
+    func runMetro() {
+        guard !isRunningMetro else { return }
+        isRunningMetro = true
+        metroResult = nil
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let raw = MetroBenchmarkRunnerKt.runFullBenchmark()
+            let result = Self.convertMetroResult(raw: raw)
+
+            DispatchQueue.main.async {
+                self?.metroResult = result
+                self?.isRunningMetro = false
+            }
+        }
+    }
+
+    func runKoin() {
+        guard !isRunningKoin else { return }
+        isRunningKoin = true
+        koinResult = nil
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let raw = KoinBenchmarkRunnerKt.runFullBenchmark()
+            let result = Self.convertKoinResult(raw: raw)
+
+            DispatchQueue.main.async {
+                self?.koinResult = result
+                self?.isRunningKoin = false
+            }
+        }
+    }
+
+    private static func convertMetroResult(raw: BenchmarkMetro.FullBenchmarkResult) -> FullFrameworkResult {
+        return convertAnyResult(rawLayers: raw.layers, frameworkName: "Metro")
+    }
+
+    private static func convertKoinResult(raw: BenchmarkKoin.FullBenchmarkResult) -> FullFrameworkResult {
+        return convertAnyResult(rawLayers: raw.layers, frameworkName: "Koin")
+    }
+
+    private static func convertAnyResult(rawLayers: [Any], frameworkName: String) -> FullFrameworkResult {
+        var layers: [LayerResult] = []
+        var grandTotal: Double = 0
+        var totalClasses: Int = 0
+
+        for rawLayer in rawLayers {
+            let layer = rawLayer as AnyObject
+            let name = layer.value(forKey: "name") as! String
+            let count = (layer.value(forKey: "count") as! NSNumber).intValue
+            let desc = layer.value(forKey: "description_") as! String
+            let rawItems = layer.value(forKey: "items") as! [AnyObject]
+
+            var items: [(name: String, timeMs: Double)] = []
+            var layerTotal: Double = 0
+
+            for pair in rawItems {
+                let itemName = pair.value(forKey: "first") as! String
+                let nanos = (pair.value(forKey: "second") as! NSNumber).int64Value
+                let ms = Double(nanos) / 1_000_000.0
+                items.append((name: itemName, timeMs: ms))
+                layerTotal += ms
+            }
+
+            grandTotal += layerTotal
+            totalClasses += count
+
+            layers.append(LayerResult(
+                name: name,
+                count: count,
+                description: desc,
+                totalTimeMs: layerTotal,
+                items: items
+            ))
+        }
+
+        return FullFrameworkResult(
+            frameworkName: frameworkName,
+            grandTotalMs: grandTotal,
+            totalClassCount: totalClasses,
+            layers: layers
+        )
+    }
+}
+
+// MARK: - Legacy Runner (kept for backward compatibility)
+
 class BenchmarkRunnerModel: ObservableObject {
     @Published var result: ComparisonResult?
     @Published var isRunning = false
@@ -34,19 +152,13 @@ class BenchmarkRunnerModel: ObservableObject {
         statusText = "Running benchmarks..."
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            // Metro benchmark
             let metroRaw = MetroBenchmarkRunnerKt.runMetroBenchmark(warmIterations: iterations)
-
-            // Koin benchmark
             let koinRaw = KoinBenchmarkRunnerKt.runKoinBenchmark(warmIterations: iterations)
 
-            // Build cold entries
             let coldEntries = Self.buildEntries(
                 metroDict: metroRaw.coldInjectionNanos as! [String: Any],
                 koinDict: koinRaw.coldInjectionNanos as! [String: Any]
             )
-
-            // Build warm entries
             let warmEntries = Self.buildEntries(
                 metroDict: metroRaw.warmInjectionAvgNanos as! [String: Any],
                 koinDict: koinRaw.warmInjectionAvgNanos as! [String: Any]
@@ -70,8 +182,6 @@ class BenchmarkRunnerModel: ObservableObject {
                 metro: metro, koin: koin,
                 coldEntries: coldEntries, warmEntries: warmEntries
             )
-
-            Self.printConsole(comparison, iterations: Int(iterations))
 
             DispatchQueue.main.async {
                 self?.result = comparison
@@ -100,40 +210,5 @@ class BenchmarkRunnerModel: ObservableObject {
         if let n = value as? Int64 { return n }
         if let n = value as? Int { return Int64(n) }
         return 0
-    }
-
-    // Note: iOS process-level memory measurement (mach_task_basic_info.resident_size)
-    // is unreliable for DI-level granularity because Kotlin/Native GC, system page
-    // reclamation, and SwiftUI rendering all affect resident_size between measurements.
-    // Use Xcode Instruments → Allocations for accurate iOS memory profiling.
-
-    private static func printConsole(_ r: ComparisonResult, iterations: Int) {
-        NSLog("")
-        NSLog("════════════════════════════════════════════════════")
-        NSLog("  iOS RUNTIME BENCHMARK: Metro vs Koin")
-        NSLog("  ~350 classes, ~285 bindings, \(iterations) warm iterations")
-        NSLog("════════════════════════════════════════════════════")
-        NSLog("")
-        NSLog("  Init Time:")
-        NSLog("    Metro: \(String(format: "%.2f", r.metro.initTimeMs))ms")
-        NSLog("    Koin:  \(String(format: "%.2f", r.koin.initTimeMs))ms")
-        NSLog("")
-        NSLog("  Cold Injection:")
-        for e in r.coldEntries {
-            let mMark = e.winner == "Metro" ? " <" : ""
-            let kMark = e.winner == "Koin" ? " <" : ""
-            NSLog("    \(e.className.padding(toLength: 22, withPad: " ", startingAt: 0)) Metro:\(String(format: "%8.0f", e.metroMicros))us\(mMark)  Koin:\(String(format: "%8.0f", e.koinMicros))us\(kMark)")
-        }
-        NSLog("")
-        NSLog("  Warm Injection (avg of \(iterations)):")
-        for e in r.warmEntries {
-            let mMark = e.winner == "Metro" ? " <" : ""
-            let kMark = e.winner == "Koin" ? " <" : ""
-            NSLog("    \(e.className.padding(toLength: 22, withPad: " ", startingAt: 0)) Metro:\(String(format: "%8.0f", e.metroMicros))us\(mMark)  Koin:\(String(format: "%8.0f", e.koinMicros))us\(kMark)")
-        }
-        NSLog("")
-        NSLog("  Avg per injection: Metro \(String(format: "%.0f", r.metro.totalWarmAvgMicros))us | Koin \(String(format: "%.0f", r.koin.totalWarmAvgMicros))us")
-        NSLog("  Note: Memory profiling on iOS requires Xcode Instruments (resident_size is unreliable for DI-level measurement)")
-        NSLog("════════════════════════════════════════════════════")
     }
 }

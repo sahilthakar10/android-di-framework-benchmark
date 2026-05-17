@@ -2,20 +2,19 @@ package com.codeint.shopapp.hilt.core.location
 
 import com.codeint.shopapp.hilt.core.storage.PreferencesManager
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton class LocationManager @Inject constructor(private val prefs: PreferencesManager) {
-    fun getLastKnownLocation(): Location? = prefs.getString("last_lat")?.let { lat -> prefs.getString("last_lng")?.let { lng -> Location(lat.toDouble(), lng.toDouble()) } }
+class LocationManager @Inject constructor(private val prefs: PreferencesManager) {
+    fun getLastKnownLocation(): Location? = null
     fun requestLocationUpdate() {}
 }
 
-@Singleton class GeocodingService @Inject constructor() {
-    fun getAddress(lat: Double, lng: Double): String = "123 Main St, San Francisco, CA"
-    fun getCoordinates(address: String): Location = Location(37.7749, -122.4194)
+class GeocodingService @Inject constructor() {
+    fun getAddress(lat: Double, lng: Double) = "123 Main St, San Francisco, CA"
+    fun getCoordinates(address: String) = Location(37.7749, -122.4194)
 }
 
-@Singleton class StoreLocator @Inject constructor(private val locationManager: LocationManager, private val geocoding: GeocodingService) {
-    fun findNearbyStores(radiusKm: Double = 10.0): List<Store> = listOf(Store("Store 1", 37.78, -122.41, 1.2))
+class StoreLocator @Inject constructor(private val locationManager: LocationManager, private val geocoding: GeocodingService) {
+    fun findNearbyStores(radiusKm: Double = 10.0) = listOf(Store("Store 1", 37.78, -122.41, 1.2))
 }
 
 data class Location(val latitude: Double, val longitude: Double)

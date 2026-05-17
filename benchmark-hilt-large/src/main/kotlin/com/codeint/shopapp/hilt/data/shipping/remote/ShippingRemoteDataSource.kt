@@ -3,33 +3,17 @@ package com.codeint.shopapp.hilt.data.shipping.remote
 import com.codeint.shopapp.hilt.core.network.*
 import com.codeint.shopapp.hilt.data.shipping.*
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class ShippingRemoteDataSource @Inject constructor(
     private val httpClient: HttpClient,
     private val apiResponseParser: ApiResponseParser,
     private val authInterceptor: AuthInterceptor,
     private val rateLimiter: RateLimiter
 ) {
-    fun getAll(request: ShippingRequest): ShippingResponse {
-        val headers = authInterceptor.intercept("/api/shippings")
-        return ShippingResponse(emptyList(), 0, request.page, false)
-    }
-
-    fun getById(id: String): ShippingEntity? {
-        val headers = authInterceptor.intercept("/api/shippings/$id")
-        return ShippingEntity(id, "Shipping $id")
-    }
-
-    fun create(entity: ShippingEntity): ShippingEntity = entity.copy(id = "new_${System.currentTimeMillis()}")
-
-    fun update(id: String, entity: ShippingEntity): ShippingEntity = entity
-
-    fun delete(id: String): Boolean = true
-
-    fun search(query: String, page: Int = 0): ShippingResponse {
-        if (rateLimiter.shouldThrottle("/api/shippings/search")) return ShippingResponse(emptyList(), 0, 0, false)
-        return ShippingResponse(emptyList(), 0, page, false)
-    }
+    fun getAll(request: ShippingRequest) = ShippingResponse(emptyList(), 0, request.page, false)
+    fun getById(id: String) = ShippingEntity(id, "Shipping $id")
+    fun create(entity: ShippingEntity) = entity.copy(id = "new_${System.currentTimeMillis()}")
+    fun update(id: String, entity: ShippingEntity) = entity
+    fun delete(id: String) = true
+    fun search(query: String, page: Int = 0) = ShippingResponse(emptyList(), 0, page, false)
 }

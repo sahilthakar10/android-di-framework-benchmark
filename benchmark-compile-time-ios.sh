@@ -30,24 +30,24 @@ for run in $(seq 1 $RUNS); do
     echo "--- Run $run of $RUNS ---"
 
     # Clean both
-    ./gradlew :benchmark-kmp-metro:clean :benchmark-kmp-koin:clean --quiet 2>/dev/null
+    ./gradlew :benchmark-metro-large:clean :benchmark-koin-large:clean --quiet 2>/dev/null
 
     # Benchmark METRO
     echo -n "  Metro (Compiler Plugin): "
     METRO_START=$(python3 -c 'import time; print(int(time.time() * 1000))')
-    ./gradlew :benchmark-kmp-metro:compileKotlin${TARGET} --quiet 2>/dev/null
+    ./gradlew :benchmark-metro-large:compileKotlin${TARGET} --quiet 2>/dev/null
     METRO_END=$(python3 -c 'import time; print(int(time.time() * 1000))')
     METRO_MS=$((METRO_END - METRO_START))
     METRO_TIMES+=($METRO_MS)
     printf "%'dms\n" $METRO_MS
 
     # Clean both
-    ./gradlew :benchmark-kmp-metro:clean :benchmark-kmp-koin:clean --quiet 2>/dev/null
+    ./gradlew :benchmark-metro-large:clean :benchmark-koin-large:clean --quiet 2>/dev/null
 
     # Benchmark KOIN
     echo -n "  Koin  (No codegen):      "
     KOIN_START=$(python3 -c 'import time; print(int(time.time() * 1000))')
-    ./gradlew :benchmark-kmp-koin:compileKotlin${TARGET} --quiet 2>/dev/null
+    ./gradlew :benchmark-koin-large:compileKotlin${TARGET} --quiet 2>/dev/null
     KOIN_END=$(python3 -c 'import time; print(int(time.time() * 1000))')
     KOIN_MS=$((KOIN_END - KOIN_START))
     KOIN_TIMES+=($KOIN_MS)

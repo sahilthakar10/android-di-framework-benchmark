@@ -53,12 +53,6 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    // DI Benchmark SDK (debug only)
-    debugImplementation(project(":di-benchmark-runtime"))
-    debugImplementation(project(":di-benchmark-ui"))
-    debugImplementation(project(":di-benchmark-export"))
-    implementation(project(":di-benchmark-annotations"))
-
     // Sample modules
     implementation(project(":sample-hilt-module"))
     implementation(project(":sample-metro-module"))
@@ -70,6 +64,12 @@ dependencies {
 
     // Koin for runtime benchmark
     implementation(libs.koin.core)
+
+
+    // Interop demo modules
+    implementation(project(":benchmark-interop-hilt-metro"))
+    implementation(project(":benchmark-interop-hilt-koin"))
+    implementation(project(":benchmark-interop-hilt-kinject"))
 
     // Test
     testImplementation(libs.junit)

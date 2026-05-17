@@ -27,15 +27,6 @@ rootProject.name = "BenchMarking"
 // App
 include(":app")
 
-// SDK modules
-include(":di-benchmark-annotations")
-include(":di-benchmark-runtime")
-include(":di-benchmark-export")
-include(":di-benchmark-ui")
-
-// Gradle plugin (composite build)
-includeBuild("di-benchmark-compiler")
-
 // Sample modules
 include(":sample-hilt-module")
 include(":sample-metro-module")
@@ -45,7 +36,8 @@ include(":benchmark-hilt-large")
 include(":benchmark-metro-large")
 include(":benchmark-koin-large")
 
-// KMP iOS benchmark modules
-include(":benchmark-kmp-common")
-include(":benchmark-kmp-metro")
-include(":benchmark-kmp-koin")
+// Interop demos: Hilt + each framework (50% Hilt infra, 50% framework features)
+include(":benchmark-interop-hilt-metro")
+include(":benchmark-interop-hilt-koin")
+include(":benchmark-interop-hilt-kinject")
+

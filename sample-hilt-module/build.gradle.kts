@@ -22,6 +22,4 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
-    debugImplementation(project(":di-benchmark-runtime"))
-    implementation(project(":di-benchmark-annotations"))
 }

@@ -3,6 +3,10 @@ package com.codeint.benchmarking
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Headless activity that runs the Hilt vs Metro vs Koin runtime benchmark
@@ -16,14 +20,13 @@ class RuntimeBenchmarkActivity : ComponentActivity() {
 
         Log.i(TAG, "Starting runtime benchmark ($iterations iterations)...")
 
-        Thread {
+        // Background coroutine: prevents ANR, auto-cancels on Activity destroy, lifecycle-safe
+        lifecycleScope.launch(Dispatchers.Default) {
             val result = RuntimeBenchmark.runFullComparison(application, iterations)
 
-            // Print structured results
             Log.i(TAG, "")
             Log.i(TAG, result.summary)
 
-            // Also print machine-readable metrics
             Log.i(TAG, "=== RAW METRICS ===")
             Log.i(TAG, "INIT|Hilt|${result.hilt.initTimeNanos}")
             Log.i(TAG, "INIT|Metro|${result.metro.initTimeNanos}")
@@ -49,8 +52,8 @@ class RuntimeBenchmarkActivity : ComponentActivity() {
             Log.i(TAG, "TOTAL_WARM|Koin|${result.koin.totalWarmNanos}")
             Log.i(TAG, "=== END ===")
 
-            finish()
-        }.start()
+            withContext(Dispatchers.Main) { finish() }
+        }
     }
 
     companion object {

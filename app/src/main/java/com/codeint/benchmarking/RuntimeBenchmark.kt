@@ -96,18 +96,18 @@ object RuntimeBenchmark {
      * measures only DI overhead, not class loading or JIT compilation.
      */
     private fun warmup(app: Application) {
-        // Warm up Hilt
+        // Warm up Hilt — access every entry point method to trigger class loading
         val entryPoint = EntryPointAccessors.fromApplication(app, BenchmarkEntryPoint::class.java)
-        entryPoint.homeViewModel()
-        entryPoint.searchViewModel()
-        entryPoint.productDetailViewModel()
-        entryPoint.cartViewModel()
-        entryPoint.checkoutViewModel()
-        entryPoint.profileViewModel()
-        entryPoint.chatViewModel()
-        entryPoint.orderHistoryViewModel()
+        entryPoint.httpClient()
+        entryPoint.authManager()
         entryPoint.analyticsTracker()
+        entryPoint.databaseManager()
+        entryPoint.cacheManager()
+        entryPoint.appLogger()
         entryPoint.productRepository()
+        entryPoint.cartRepository()
+        entryPoint.orderRepository()
+        entryPoint.userRepository()
 
         // Warm up Metro
         val graph = GraphFactory.create()
@@ -153,35 +153,35 @@ object RuntimeBenchmark {
         val entryPoint = EntryPointAccessors.fromApplication(app, BenchmarkEntryPoint::class.java)
         val initTime = System.nanoTime() - initStart
 
-        // 2. First injection (cold)
+        // 2. First injection (cold) — honest names matching actual calls
         val firstInjections = mutableMapOf<String, Long>()
 
-        firstInjections["HomeViewModel"] = measureNanos { entryPoint.homeViewModel() }
-        firstInjections["SearchViewModel"] = measureNanos { entryPoint.searchViewModel() }
-        firstInjections["ProductDetailVM"] = measureNanos { entryPoint.productDetailViewModel() }
-        firstInjections["CartViewModel"] = measureNanos { entryPoint.cartViewModel() }
-        firstInjections["CheckoutViewModel"] = measureNanos { entryPoint.checkoutViewModel() }
-        firstInjections["ProfileViewModel"] = measureNanos { entryPoint.profileViewModel() }
-        firstInjections["ChatViewModel"] = measureNanos { entryPoint.chatViewModel() }
-        firstInjections["OrderHistoryVM"] = measureNanos { entryPoint.orderHistoryViewModel() }
+        firstInjections["HttpClient"] = measureNanos { entryPoint.httpClient() }
+        firstInjections["AuthManager"] = measureNanos { entryPoint.authManager() }
         firstInjections["AnalyticsTracker"] = measureNanos { entryPoint.analyticsTracker() }
+        firstInjections["DatabaseManager"] = measureNanos { entryPoint.databaseManager() }
+        firstInjections["CacheManager"] = measureNanos { entryPoint.cacheManager() }
+        firstInjections["AppLogger"] = measureNanos { entryPoint.appLogger() }
         firstInjections["ProductRepository"] = measureNanos { entryPoint.productRepository() }
+        firstInjections["CartRepository"] = measureNanos { entryPoint.cartRepository() }
+        firstInjections["OrderRepository"] = measureNanos { entryPoint.orderRepository() }
+        firstInjections["UserRepository"] = measureNanos { entryPoint.userRepository() }
 
         // 3. Warm injection - repeated resolution
         val warmInjections = mutableMapOf<String, Long>()
         var totalWarm = 0L
 
         val targets = listOf<Pair<String, () -> Any>>(
-            "HomeViewModel" to { entryPoint.homeViewModel() },
-            "SearchViewModel" to { entryPoint.searchViewModel() },
-            "ProductDetailVM" to { entryPoint.productDetailViewModel() },
-            "CartViewModel" to { entryPoint.cartViewModel() },
-            "CheckoutViewModel" to { entryPoint.checkoutViewModel() },
-            "ProfileViewModel" to { entryPoint.profileViewModel() },
-            "ChatViewModel" to { entryPoint.chatViewModel() },
-            "OrderHistoryVM" to { entryPoint.orderHistoryViewModel() },
+            "HttpClient" to { entryPoint.httpClient() },
+            "AuthManager" to { entryPoint.authManager() },
             "AnalyticsTracker" to { entryPoint.analyticsTracker() },
-            "ProductRepository" to { entryPoint.productRepository() }
+            "DatabaseManager" to { entryPoint.databaseManager() },
+            "CacheManager" to { entryPoint.cacheManager() },
+            "AppLogger" to { entryPoint.appLogger() },
+            "ProductRepository" to { entryPoint.productRepository() },
+            "CartRepository" to { entryPoint.cartRepository() },
+            "OrderRepository" to { entryPoint.orderRepository() },
+            "UserRepository" to { entryPoint.userRepository() }
         )
 
         for ((name, resolver) in targets) {

@@ -3,33 +3,17 @@ package com.codeint.shopapp.hilt.data.product.remote
 import com.codeint.shopapp.hilt.core.network.*
 import com.codeint.shopapp.hilt.data.product.*
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class ProductRemoteDataSource @Inject constructor(
     private val httpClient: HttpClient,
     private val apiResponseParser: ApiResponseParser,
     private val authInterceptor: AuthInterceptor,
     private val rateLimiter: RateLimiter
 ) {
-    fun getAll(request: ProductRequest): ProductResponse {
-        val headers = authInterceptor.intercept("/api/products")
-        return ProductResponse(emptyList(), 0, request.page, false)
-    }
-
-    fun getById(id: String): ProductEntity? {
-        val headers = authInterceptor.intercept("/api/products/$id")
-        return ProductEntity(id, "Product $id")
-    }
-
-    fun create(entity: ProductEntity): ProductEntity = entity.copy(id = "new_${System.currentTimeMillis()}")
-
-    fun update(id: String, entity: ProductEntity): ProductEntity = entity
-
-    fun delete(id: String): Boolean = true
-
-    fun search(query: String, page: Int = 0): ProductResponse {
-        if (rateLimiter.shouldThrottle("/api/products/search")) return ProductResponse(emptyList(), 0, 0, false)
-        return ProductResponse(emptyList(), 0, page, false)
-    }
+    fun getAll(request: ProductRequest) = ProductResponse(emptyList(), 0, request.page, false)
+    fun getById(id: String) = ProductEntity(id, "Product $id")
+    fun create(entity: ProductEntity) = entity.copy(id = "new_${System.currentTimeMillis()}")
+    fun update(id: String, entity: ProductEntity) = entity
+    fun delete(id: String) = true
+    fun search(query: String, page: Int = 0) = ProductResponse(emptyList(), 0, page, false)
 }

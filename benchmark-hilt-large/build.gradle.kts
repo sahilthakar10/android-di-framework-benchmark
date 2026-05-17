@@ -21,4 +21,11 @@ android {
 dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    // ViewModel + Lifecycle
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    api("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 }

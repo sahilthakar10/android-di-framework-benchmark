@@ -6,8 +6,7 @@ import com.codeint.shopapp.hilt.core.logging.AppLogger
 import javax.inject.Inject
 
 class GetCategoryListUseCase @Inject constructor(
-    private val repository: CategoryRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: CategoryRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(page: Int = 0, pageSize: Int = 20): PagedResult<CategoryDomainModel> {
         analytics.track("get_category_list", mapOf("page" to page))
@@ -16,8 +15,7 @@ class GetCategoryListUseCase @Inject constructor(
 }
 
 class GetCategoryDetailUseCase @Inject constructor(
-    private val repository: CategoryRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: CategoryRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(id: String): CategoryDomainModel? {
         analytics.track("get_category_detail", mapOf("id" to id))
@@ -25,44 +23,20 @@ class GetCategoryDetailUseCase @Inject constructor(
     }
 }
 
-class CreateCategoryUseCase @Inject constructor(
-    private val repository: CategoryRepository,
-    private val logger: AppLogger
-) {
-    fun execute(model: CategoryDomainModel): CategoryDomainModel {
-        logger.info("CategoryUseCase", "Creating category: ${model.name}")
-        return repository.create(model)
-    }
+class CreateCategoryUseCase @Inject constructor(private val repository: CategoryRepository, private val logger: AppLogger) {
+    fun execute(model: CategoryDomainModel) = repository.create(model)
 }
 
-class UpdateCategoryUseCase @Inject constructor(
-    private val repository: CategoryRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String, model: CategoryDomainModel): CategoryDomainModel {
-        logger.info("CategoryUseCase", "Updating category: $id")
-        return repository.update(id, model)
-    }
+class UpdateCategoryUseCase @Inject constructor(private val repository: CategoryRepository, private val logger: AppLogger) {
+    fun execute(id: String, model: CategoryDomainModel) = repository.update(id, model)
 }
 
-class DeleteCategoryUseCase @Inject constructor(
-    private val repository: CategoryRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String): Boolean {
-        logger.info("CategoryUseCase", "Deleting category: $id")
-        return repository.delete(id)
-    }
+class DeleteCategoryUseCase @Inject constructor(private val repository: CategoryRepository, private val logger: AppLogger) {
+    fun execute(id: String) = repository.delete(id)
 }
 
-class SearchCategoryUseCase @Inject constructor(
-    private val repository: CategoryRepository,
-    private val analytics: AnalyticsTracker
-) {
-    fun execute(query: String, page: Int = 0): PagedResult<CategoryDomainModel> {
-        analytics.track("search_category", mapOf("query" to query))
-        return repository.search(query, page)
-    }
+class SearchCategoryUseCase @Inject constructor(private val repository: CategoryRepository, private val analytics: AnalyticsTracker) {
+    fun execute(query: String, page: Int = 0) = repository.search(query, page)
 }
 
 class ValidateCategoryUseCase @Inject constructor(private val logger: AppLogger) {
@@ -74,25 +48,16 @@ class ValidateCategoryUseCase @Inject constructor(private val logger: AppLogger)
     }
 }
 
-class RefreshCategoryCacheUseCase @Inject constructor(
-    private val repository: CategoryRepository,
-    private val logger: AppLogger
-) {
-    fun execute() {
-        logger.info("CategoryUseCase", "Refreshing category cache")
-        repository.clearCache()
-        repository.getAll()
-    }
+class RefreshCategoryCacheUseCase @Inject constructor(private val repository: CategoryRepository, private val logger: AppLogger) {
+    fun execute() { repository.clearCache(); repository.getAll() }
 }
 
 class GetCategoryCountUseCase @Inject constructor(private val repository: CategoryRepository) {
-    fun execute(): Int = repository.getAll().totalCount
+    fun execute() = repository.getAll().totalCount
 }
 
 class FilterCategoryUseCase @Inject constructor(private val repository: CategoryRepository) {
-    fun execute(predicate: (CategoryDomainModel) -> Boolean): List<CategoryDomainModel> {
-        return repository.getAll().items.filter(predicate)
-    }
+    fun execute(predicate: (CategoryDomainModel) -> Boolean) = repository.getAll().items.filter(predicate)
 }
 
 data class ValidationResult(val isValid: Boolean, val errors: List<String>)

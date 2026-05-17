@@ -37,10 +37,10 @@ for run in $(seq 1 $RUNS); do
     # Clean all three
     ./gradlew :benchmark-hilt-large:clean :benchmark-metro-large:clean :benchmark-koin-large:clean --quiet 2>/dev/null
 
-    # Benchmark HILT
+    # Benchmark HILT (KSP + Kotlin + Java — 3 compilation steps)
     echo -n "  Hilt  (KSP + Dagger):    "
     HILT_START=$(python3 -c 'import time; print(int(time.time() * 1000))')
-    ./gradlew :benchmark-hilt-large:compileDebugKotlin --quiet 2>/dev/null
+    ./gradlew :benchmark-hilt-large:kspDebugKotlin :benchmark-hilt-large:compileDebugKotlin :benchmark-hilt-large:compileDebugJavaWithJavac --quiet 2>/dev/null
     HILT_END=$(python3 -c 'import time; print(int(time.time() * 1000))')
     HILT_MS=$((HILT_END - HILT_START))
     HILT_TIMES+=($HILT_MS)
@@ -49,10 +49,10 @@ for run in $(seq 1 $RUNS); do
     # Clean all
     ./gradlew :benchmark-hilt-large:clean :benchmark-metro-large:clean :benchmark-koin-large:clean --quiet 2>/dev/null
 
-    # Benchmark METRO
+    # Benchmark METRO (KMP module — use compileAndroidMain)
     echo -n "  Metro (Compiler Plugin): "
     METRO_START=$(python3 -c 'import time; print(int(time.time() * 1000))')
-    ./gradlew :benchmark-metro-large:compileDebugKotlin --quiet 2>/dev/null
+    ./gradlew :benchmark-metro-large:compileAndroidMain --quiet 2>/dev/null
     METRO_END=$(python3 -c 'import time; print(int(time.time() * 1000))')
     METRO_MS=$((METRO_END - METRO_START))
     METRO_TIMES+=($METRO_MS)
@@ -61,10 +61,10 @@ for run in $(seq 1 $RUNS); do
     # Clean all
     ./gradlew :benchmark-hilt-large:clean :benchmark-metro-large:clean :benchmark-koin-large:clean --quiet 2>/dev/null
 
-    # Benchmark KOIN
+    # Benchmark KOIN (KMP module — use compileAndroidMain)
     echo -n "  Koin  (No codegen):      "
     KOIN_START=$(python3 -c 'import time; print(int(time.time() * 1000))')
-    ./gradlew :benchmark-koin-large:compileDebugKotlin --quiet 2>/dev/null
+    ./gradlew :benchmark-koin-large:compileAndroidMain --quiet 2>/dev/null
     KOIN_END=$(python3 -c 'import time; print(int(time.time() * 1000))')
     KOIN_MS=$((KOIN_END - KOIN_START))
     KOIN_TIMES+=($KOIN_MS)
@@ -164,7 +164,7 @@ echo "  GENERATED CODE ANALYSIS"
 echo "================================================================"
 
 ./gradlew :benchmark-hilt-large:clean :benchmark-metro-large:clean :benchmark-koin-large:clean --quiet 2>/dev/null
-./gradlew :benchmark-hilt-large:compileDebugKotlin :benchmark-metro-large:compileDebugKotlin :benchmark-koin-large:compileDebugKotlin --quiet 2>/dev/null
+./gradlew :benchmark-hilt-large:kspDebugKotlin :benchmark-hilt-large:compileDebugKotlin :benchmark-metro-large:compileAndroidMain :benchmark-koin-large:compileAndroidMain --quiet 2>/dev/null
 
 analyze_gen() {
     local dir=$1

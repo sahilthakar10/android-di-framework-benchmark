@@ -28,10 +28,10 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait"
         FRAMEWORK_SEARCH_PATHS:
           - "$(inherited)"
-          - "../benchmark-kmp-metro/build/XCFrameworks/release/BenchmarkMetro.xcframework"
-          - "../benchmark-kmp-koin/build/XCFrameworks/release/BenchmarkKoin.xcframework"
+          - "../benchmark-metro-large/build/XCFrameworks/release/BenchmarkMetro.xcframework"
+          - "../benchmark-koin-large/build/XCFrameworks/release/BenchmarkKoin.xcframework"
     dependencies:
-      - framework: "../benchmark-kmp-metro/build/XCFrameworks/release/BenchmarkMetro.xcframework"
+      - framework: "../benchmark-metro-large/build/XCFrameworks/release/BenchmarkMetro.xcframework"
         embed: true
-      - framework: "../benchmark-kmp-koin/build/XCFrameworks/release/BenchmarkKoin.xcframework"
+      - framework: "../benchmark-koin-large/build/XCFrameworks/release/BenchmarkKoin.xcframework"
         embed: true

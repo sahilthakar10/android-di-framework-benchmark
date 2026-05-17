@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		09B43D62CBDF0EDC49EF896F /* BenchmarkMetro.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BCB39CB252541C3CB05EF0B4 /* BenchmarkMetro.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		27ADAF850FD6C59920D15D44 /* BenchmarkKoin.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85924A3D5BA8214C93AF459C /* BenchmarkKoin.xcframework */; };
+		3CB6278E180211D3602796C5 /* BenchmarkDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0785E0FBEB76AABCEF1A374 /* BenchmarkDetailView.swift */; };
 		6730D5871F7E065E8AB2993F /* BenchmarkMetro.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = BCB39CB252541C3CB05EF0B4 /* BenchmarkMetro.xcframework */; };
 		70FDAFD9CCD2C5E3FD9BD992 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8A0DFC92817D965D391079 /* ContentView.swift */; };
 		8581534ED9587485E0E786DF /* iosAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9457C44FDD2F7DC09DC771EB /* iosAppApp.swift */; };
@@ -35,9 +36,10 @@
 		270165FF645C79C379B1DCC9 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B8A0DFC92817D965D391079 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		5965AFC2B8E51C5BE872DEF3 /* BenchmarkRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkRunner.swift; sourceTree = "<group>"; };
-		85924A3D5BA8214C93AF459C /* BenchmarkKoin.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = BenchmarkKoin.xcframework; path = "../benchmark-kmp-koin/build/XCFrameworks/release/BenchmarkKoin.xcframework"; sourceTree = "<group>"; };
+		85924A3D5BA8214C93AF459C /* BenchmarkKoin.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = BenchmarkKoin.xcframework; path = "../benchmark-koin-large/build/XCFrameworks/release/BenchmarkKoin.xcframework"; sourceTree = "<group>"; };
 		9457C44FDD2F7DC09DC771EB /* iosAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iosAppApp.swift; sourceTree = "<group>"; };
-		BCB39CB252541C3CB05EF0B4 /* BenchmarkMetro.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = BenchmarkMetro.xcframework; path = "../benchmark-kmp-metro/build/XCFrameworks/release/BenchmarkMetro.xcframework"; sourceTree = "<group>"; };
+		BCB39CB252541C3CB05EF0B4 /* BenchmarkMetro.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = BenchmarkMetro.xcframework; path = "../benchmark-metro-large/build/XCFrameworks/release/BenchmarkMetro.xcframework"; sourceTree = "<group>"; };
+		F0785E0FBEB76AABCEF1A374 /* BenchmarkDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 		8D81A10927E4E9424257FBC3 /* iosApp */ = {
 			isa = PBXGroup;
 			children = (
+				F0785E0FBEB76AABCEF1A374 /* BenchmarkDetailView.swift */,
 				5965AFC2B8E51C5BE872DEF3 /* BenchmarkRunner.swift */,
 				2B8A0DFC92817D965D391079 /* ContentView.swift */,
 				9457C44FDD2F7DC09DC771EB /* iosAppApp.swift */,
@@ -146,6 +149,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CB6278E180211D3602796C5 /* BenchmarkDetailView.swift in Sources */,
 				C157958755D952778B37CB9D /* BenchmarkRunner.swift in Sources */,
 				70FDAFD9CCD2C5E3FD9BD992 /* ContentView.swift in Sources */,
 				8581534ED9587485E0E786DF /* iosAppApp.swift in Sources */,
@@ -163,10 +167,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"../benchmark-kmp-metro/build/XCFrameworks/release/BenchmarkMetro.xcframework",
-					"../benchmark-kmp-koin/build/XCFrameworks/release/BenchmarkKoin.xcframework",
-					"\"../benchmark-kmp-koin/build/XCFrameworks/release\"",
-					"\"../benchmark-kmp-metro/build/XCFrameworks/release\"",
+					"../benchmark-metro-large/build/XCFrameworks/release/BenchmarkMetro.xcframework",
+					"../benchmark-koin-large/build/XCFrameworks/release/BenchmarkKoin.xcframework",
+					"\"../benchmark-koin-large/build/XCFrameworks/release\"",
+					"\"../benchmark-metro-large/build/XCFrameworks/release\"",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_GENERATION = YES;
@@ -311,10 +315,10 @@
 				CURRENT_PROJECT_VERSION = 1;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"../benchmark-kmp-metro/build/XCFrameworks/release/BenchmarkMetro.xcframework",
-					"../benchmark-kmp-koin/build/XCFrameworks/release/BenchmarkKoin.xcframework",
-					"\"../benchmark-kmp-koin/build/XCFrameworks/release\"",
-					"\"../benchmark-kmp-metro/build/XCFrameworks/release\"",
+					"../benchmark-metro-large/build/XCFrameworks/release/BenchmarkMetro.xcframework",
+					"../benchmark-koin-large/build/XCFrameworks/release/BenchmarkKoin.xcframework",
+					"\"../benchmark-koin-large/build/XCFrameworks/release\"",
+					"\"../benchmark-metro-large/build/XCFrameworks/release\"",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_GENERATION = YES;

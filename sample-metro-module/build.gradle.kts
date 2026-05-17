@@ -18,6 +18,4 @@ android {
 }
 
 dependencies {
-    debugImplementation(project(":di-benchmark-runtime"))
-    implementation(project(":di-benchmark-annotations"))
 }

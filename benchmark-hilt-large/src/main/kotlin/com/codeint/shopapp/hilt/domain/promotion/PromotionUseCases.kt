@@ -6,8 +6,7 @@ import com.codeint.shopapp.hilt.core.logging.AppLogger
 import javax.inject.Inject
 
 class GetPromotionListUseCase @Inject constructor(
-    private val repository: PromotionRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: PromotionRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(page: Int = 0, pageSize: Int = 20): PagedResult<PromotionDomainModel> {
         analytics.track("get_promotion_list", mapOf("page" to page))
@@ -16,8 +15,7 @@ class GetPromotionListUseCase @Inject constructor(
 }
 
 class GetPromotionDetailUseCase @Inject constructor(
-    private val repository: PromotionRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: PromotionRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(id: String): PromotionDomainModel? {
         analytics.track("get_promotion_detail", mapOf("id" to id))
@@ -25,44 +23,20 @@ class GetPromotionDetailUseCase @Inject constructor(
     }
 }
 
-class CreatePromotionUseCase @Inject constructor(
-    private val repository: PromotionRepository,
-    private val logger: AppLogger
-) {
-    fun execute(model: PromotionDomainModel): PromotionDomainModel {
-        logger.info("PromotionUseCase", "Creating promotion: ${model.name}")
-        return repository.create(model)
-    }
+class CreatePromotionUseCase @Inject constructor(private val repository: PromotionRepository, private val logger: AppLogger) {
+    fun execute(model: PromotionDomainModel) = repository.create(model)
 }
 
-class UpdatePromotionUseCase @Inject constructor(
-    private val repository: PromotionRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String, model: PromotionDomainModel): PromotionDomainModel {
-        logger.info("PromotionUseCase", "Updating promotion: $id")
-        return repository.update(id, model)
-    }
+class UpdatePromotionUseCase @Inject constructor(private val repository: PromotionRepository, private val logger: AppLogger) {
+    fun execute(id: String, model: PromotionDomainModel) = repository.update(id, model)
 }
 
-class DeletePromotionUseCase @Inject constructor(
-    private val repository: PromotionRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String): Boolean {
-        logger.info("PromotionUseCase", "Deleting promotion: $id")
-        return repository.delete(id)
-    }
+class DeletePromotionUseCase @Inject constructor(private val repository: PromotionRepository, private val logger: AppLogger) {
+    fun execute(id: String) = repository.delete(id)
 }
 
-class SearchPromotionUseCase @Inject constructor(
-    private val repository: PromotionRepository,
-    private val analytics: AnalyticsTracker
-) {
-    fun execute(query: String, page: Int = 0): PagedResult<PromotionDomainModel> {
-        analytics.track("search_promotion", mapOf("query" to query))
-        return repository.search(query, page)
-    }
+class SearchPromotionUseCase @Inject constructor(private val repository: PromotionRepository, private val analytics: AnalyticsTracker) {
+    fun execute(query: String, page: Int = 0) = repository.search(query, page)
 }
 
 class ValidatePromotionUseCase @Inject constructor(private val logger: AppLogger) {
@@ -74,25 +48,16 @@ class ValidatePromotionUseCase @Inject constructor(private val logger: AppLogger
     }
 }
 
-class RefreshPromotionCacheUseCase @Inject constructor(
-    private val repository: PromotionRepository,
-    private val logger: AppLogger
-) {
-    fun execute() {
-        logger.info("PromotionUseCase", "Refreshing promotion cache")
-        repository.clearCache()
-        repository.getAll()
-    }
+class RefreshPromotionCacheUseCase @Inject constructor(private val repository: PromotionRepository, private val logger: AppLogger) {
+    fun execute() { repository.clearCache(); repository.getAll() }
 }
 
 class GetPromotionCountUseCase @Inject constructor(private val repository: PromotionRepository) {
-    fun execute(): Int = repository.getAll().totalCount
+    fun execute() = repository.getAll().totalCount
 }
 
 class FilterPromotionUseCase @Inject constructor(private val repository: PromotionRepository) {
-    fun execute(predicate: (PromotionDomainModel) -> Boolean): List<PromotionDomainModel> {
-        return repository.getAll().items.filter(predicate)
-    }
+    fun execute(predicate: (PromotionDomainModel) -> Boolean) = repository.getAll().items.filter(predicate)
 }
 
 data class ValidationResult(val isValid: Boolean, val errors: List<String>)

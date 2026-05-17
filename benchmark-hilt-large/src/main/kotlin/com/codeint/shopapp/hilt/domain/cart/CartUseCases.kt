@@ -6,8 +6,7 @@ import com.codeint.shopapp.hilt.core.logging.AppLogger
 import javax.inject.Inject
 
 class GetCartListUseCase @Inject constructor(
-    private val repository: CartRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: CartRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(page: Int = 0, pageSize: Int = 20): PagedResult<CartDomainModel> {
         analytics.track("get_cart_list", mapOf("page" to page))
@@ -16,8 +15,7 @@ class GetCartListUseCase @Inject constructor(
 }
 
 class GetCartDetailUseCase @Inject constructor(
-    private val repository: CartRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: CartRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(id: String): CartDomainModel? {
         analytics.track("get_cart_detail", mapOf("id" to id))
@@ -25,44 +23,20 @@ class GetCartDetailUseCase @Inject constructor(
     }
 }
 
-class CreateCartUseCase @Inject constructor(
-    private val repository: CartRepository,
-    private val logger: AppLogger
-) {
-    fun execute(model: CartDomainModel): CartDomainModel {
-        logger.info("CartUseCase", "Creating cart: ${model.name}")
-        return repository.create(model)
-    }
+class CreateCartUseCase @Inject constructor(private val repository: CartRepository, private val logger: AppLogger) {
+    fun execute(model: CartDomainModel) = repository.create(model)
 }
 
-class UpdateCartUseCase @Inject constructor(
-    private val repository: CartRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String, model: CartDomainModel): CartDomainModel {
-        logger.info("CartUseCase", "Updating cart: $id")
-        return repository.update(id, model)
-    }
+class UpdateCartUseCase @Inject constructor(private val repository: CartRepository, private val logger: AppLogger) {
+    fun execute(id: String, model: CartDomainModel) = repository.update(id, model)
 }
 
-class DeleteCartUseCase @Inject constructor(
-    private val repository: CartRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String): Boolean {
-        logger.info("CartUseCase", "Deleting cart: $id")
-        return repository.delete(id)
-    }
+class DeleteCartUseCase @Inject constructor(private val repository: CartRepository, private val logger: AppLogger) {
+    fun execute(id: String) = repository.delete(id)
 }
 
-class SearchCartUseCase @Inject constructor(
-    private val repository: CartRepository,
-    private val analytics: AnalyticsTracker
-) {
-    fun execute(query: String, page: Int = 0): PagedResult<CartDomainModel> {
-        analytics.track("search_cart", mapOf("query" to query))
-        return repository.search(query, page)
-    }
+class SearchCartUseCase @Inject constructor(private val repository: CartRepository, private val analytics: AnalyticsTracker) {
+    fun execute(query: String, page: Int = 0) = repository.search(query, page)
 }
 
 class ValidateCartUseCase @Inject constructor(private val logger: AppLogger) {
@@ -74,25 +48,16 @@ class ValidateCartUseCase @Inject constructor(private val logger: AppLogger) {
     }
 }
 
-class RefreshCartCacheUseCase @Inject constructor(
-    private val repository: CartRepository,
-    private val logger: AppLogger
-) {
-    fun execute() {
-        logger.info("CartUseCase", "Refreshing cart cache")
-        repository.clearCache()
-        repository.getAll()
-    }
+class RefreshCartCacheUseCase @Inject constructor(private val repository: CartRepository, private val logger: AppLogger) {
+    fun execute() { repository.clearCache(); repository.getAll() }
 }
 
 class GetCartCountUseCase @Inject constructor(private val repository: CartRepository) {
-    fun execute(): Int = repository.getAll().totalCount
+    fun execute() = repository.getAll().totalCount
 }
 
 class FilterCartUseCase @Inject constructor(private val repository: CartRepository) {
-    fun execute(predicate: (CartDomainModel) -> Boolean): List<CartDomainModel> {
-        return repository.getAll().items.filter(predicate)
-    }
+    fun execute(predicate: (CartDomainModel) -> Boolean) = repository.getAll().items.filter(predicate)
 }
 
 data class ValidationResult(val isValid: Boolean, val errors: List<String>)

@@ -6,8 +6,7 @@ import com.codeint.shopapp.hilt.core.logging.AppLogger
 import javax.inject.Inject
 
 class GetSearchListUseCase @Inject constructor(
-    private val repository: SearchRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: SearchRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(page: Int = 0, pageSize: Int = 20): PagedResult<SearchDomainModel> {
         analytics.track("get_search_list", mapOf("page" to page))
@@ -16,8 +15,7 @@ class GetSearchListUseCase @Inject constructor(
 }
 
 class GetSearchDetailUseCase @Inject constructor(
-    private val repository: SearchRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: SearchRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(id: String): SearchDomainModel? {
         analytics.track("get_search_detail", mapOf("id" to id))
@@ -25,44 +23,20 @@ class GetSearchDetailUseCase @Inject constructor(
     }
 }
 
-class CreateSearchUseCase @Inject constructor(
-    private val repository: SearchRepository,
-    private val logger: AppLogger
-) {
-    fun execute(model: SearchDomainModel): SearchDomainModel {
-        logger.info("SearchUseCase", "Creating search: ${model.name}")
-        return repository.create(model)
-    }
+class CreateSearchUseCase @Inject constructor(private val repository: SearchRepository, private val logger: AppLogger) {
+    fun execute(model: SearchDomainModel) = repository.create(model)
 }
 
-class UpdateSearchUseCase @Inject constructor(
-    private val repository: SearchRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String, model: SearchDomainModel): SearchDomainModel {
-        logger.info("SearchUseCase", "Updating search: $id")
-        return repository.update(id, model)
-    }
+class UpdateSearchUseCase @Inject constructor(private val repository: SearchRepository, private val logger: AppLogger) {
+    fun execute(id: String, model: SearchDomainModel) = repository.update(id, model)
 }
 
-class DeleteSearchUseCase @Inject constructor(
-    private val repository: SearchRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String): Boolean {
-        logger.info("SearchUseCase", "Deleting search: $id")
-        return repository.delete(id)
-    }
+class DeleteSearchUseCase @Inject constructor(private val repository: SearchRepository, private val logger: AppLogger) {
+    fun execute(id: String) = repository.delete(id)
 }
 
-class SearchSearchUseCase @Inject constructor(
-    private val repository: SearchRepository,
-    private val analytics: AnalyticsTracker
-) {
-    fun execute(query: String, page: Int = 0): PagedResult<SearchDomainModel> {
-        analytics.track("search_search", mapOf("query" to query))
-        return repository.search(query, page)
-    }
+class SearchSearchUseCase @Inject constructor(private val repository: SearchRepository, private val analytics: AnalyticsTracker) {
+    fun execute(query: String, page: Int = 0) = repository.search(query, page)
 }
 
 class ValidateSearchUseCase @Inject constructor(private val logger: AppLogger) {
@@ -74,25 +48,16 @@ class ValidateSearchUseCase @Inject constructor(private val logger: AppLogger) {
     }
 }
 
-class RefreshSearchCacheUseCase @Inject constructor(
-    private val repository: SearchRepository,
-    private val logger: AppLogger
-) {
-    fun execute() {
-        logger.info("SearchUseCase", "Refreshing search cache")
-        repository.clearCache()
-        repository.getAll()
-    }
+class RefreshSearchCacheUseCase @Inject constructor(private val repository: SearchRepository, private val logger: AppLogger) {
+    fun execute() { repository.clearCache(); repository.getAll() }
 }
 
 class GetSearchCountUseCase @Inject constructor(private val repository: SearchRepository) {
-    fun execute(): Int = repository.getAll().totalCount
+    fun execute() = repository.getAll().totalCount
 }
 
 class FilterSearchUseCase @Inject constructor(private val repository: SearchRepository) {
-    fun execute(predicate: (SearchDomainModel) -> Boolean): List<SearchDomainModel> {
-        return repository.getAll().items.filter(predicate)
-    }
+    fun execute(predicate: (SearchDomainModel) -> Boolean) = repository.getAll().items.filter(predicate)
 }
 
 data class ValidationResult(val isValid: Boolean, val errors: List<String>)

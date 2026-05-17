@@ -6,8 +6,7 @@ import com.codeint.shopapp.hilt.core.logging.AppLogger
 import javax.inject.Inject
 
 class GetWishlistListUseCase @Inject constructor(
-    private val repository: WishlistRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: WishlistRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(page: Int = 0, pageSize: Int = 20): PagedResult<WishlistDomainModel> {
         analytics.track("get_wishlist_list", mapOf("page" to page))
@@ -16,8 +15,7 @@ class GetWishlistListUseCase @Inject constructor(
 }
 
 class GetWishlistDetailUseCase @Inject constructor(
-    private val repository: WishlistRepository,
-    private val analytics: AnalyticsTracker
+    private val repository: WishlistRepository, private val analytics: AnalyticsTracker
 ) {
     fun execute(id: String): WishlistDomainModel? {
         analytics.track("get_wishlist_detail", mapOf("id" to id))
@@ -25,44 +23,20 @@ class GetWishlistDetailUseCase @Inject constructor(
     }
 }
 
-class CreateWishlistUseCase @Inject constructor(
-    private val repository: WishlistRepository,
-    private val logger: AppLogger
-) {
-    fun execute(model: WishlistDomainModel): WishlistDomainModel {
-        logger.info("WishlistUseCase", "Creating wishlist: ${model.name}")
-        return repository.create(model)
-    }
+class CreateWishlistUseCase @Inject constructor(private val repository: WishlistRepository, private val logger: AppLogger) {
+    fun execute(model: WishlistDomainModel) = repository.create(model)
 }
 
-class UpdateWishlistUseCase @Inject constructor(
-    private val repository: WishlistRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String, model: WishlistDomainModel): WishlistDomainModel {
-        logger.info("WishlistUseCase", "Updating wishlist: $id")
-        return repository.update(id, model)
-    }
+class UpdateWishlistUseCase @Inject constructor(private val repository: WishlistRepository, private val logger: AppLogger) {
+    fun execute(id: String, model: WishlistDomainModel) = repository.update(id, model)
 }
 
-class DeleteWishlistUseCase @Inject constructor(
-    private val repository: WishlistRepository,
-    private val logger: AppLogger
-) {
-    fun execute(id: String): Boolean {
-        logger.info("WishlistUseCase", "Deleting wishlist: $id")
-        return repository.delete(id)
-    }
+class DeleteWishlistUseCase @Inject constructor(private val repository: WishlistRepository, private val logger: AppLogger) {
+    fun execute(id: String) = repository.delete(id)
 }
 
-class SearchWishlistUseCase @Inject constructor(
-    private val repository: WishlistRepository,
-    private val analytics: AnalyticsTracker
-) {
-    fun execute(query: String, page: Int = 0): PagedResult<WishlistDomainModel> {
-        analytics.track("search_wishlist", mapOf("query" to query))
-        return repository.search(query, page)
-    }
+class SearchWishlistUseCase @Inject constructor(private val repository: WishlistRepository, private val analytics: AnalyticsTracker) {
+    fun execute(query: String, page: Int = 0) = repository.search(query, page)
 }
 
 class ValidateWishlistUseCase @Inject constructor(private val logger: AppLogger) {
@@ -74,25 +48,16 @@ class ValidateWishlistUseCase @Inject constructor(private val logger: AppLogger)
     }
 }
 
-class RefreshWishlistCacheUseCase @Inject constructor(
-    private val repository: WishlistRepository,
-    private val logger: AppLogger
-) {
-    fun execute() {
-        logger.info("WishlistUseCase", "Refreshing wishlist cache")
-        repository.clearCache()
-        repository.getAll()
-    }
+class RefreshWishlistCacheUseCase @Inject constructor(private val repository: WishlistRepository, private val logger: AppLogger) {
+    fun execute() { repository.clearCache(); repository.getAll() }
 }
 
 class GetWishlistCountUseCase @Inject constructor(private val repository: WishlistRepository) {
-    fun execute(): Int = repository.getAll().totalCount
+    fun execute() = repository.getAll().totalCount
 }
 
 class FilterWishlistUseCase @Inject constructor(private val repository: WishlistRepository) {
-    fun execute(predicate: (WishlistDomainModel) -> Boolean): List<WishlistDomainModel> {
-        return repository.getAll().items.filter(predicate)
-    }
+    fun execute(predicate: (WishlistDomainModel) -> Boolean) = repository.getAll().items.filter(predicate)
 }
 
 data class ValidationResult(val isValid: Boolean, val errors: List<String>)
