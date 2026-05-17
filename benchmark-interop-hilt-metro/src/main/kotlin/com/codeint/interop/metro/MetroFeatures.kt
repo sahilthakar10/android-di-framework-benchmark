@@ -9,30 +9,24 @@ import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 
 /**
- * METRO SIDE — Feature implementations.
+ * Metro feature implementations that consume Hilt-managed infrastructure.
  *
- * These consume Hilt-provided infrastructure (HttpClient, AuthManager, etc.)
- * via @Includes on the DependencyGraph. Metro reads the Dagger component's
- * public accessors and makes them available as bindings — ZERO bridge code.
- *
- * This is the key interop demo: Metro features using Hilt infrastructure,
- * and the Hilt side can also access Metro-provided services.
+ * Each class depends only on interfaces (HttpClient, AuthManager, etc.)
+ * and doesn't know the implementations come from Hilt.
  */
-
-// ── Implementations using Hilt-provided dependencies ──
 
 @SingleIn(AppScope::class)
 class MetroProductRepository @Inject constructor(
-    private val httpClient: HttpClient,       // ← Provided by Hilt
-    private val cacheManager: CacheManager,   // ← Provided by Hilt
-    private val logger: Logger                // ← Provided by Hilt
+    private val httpClient: HttpClient,
+    private val cacheManager: CacheManager,
+    private val logger: Logger
 ) : ProductRepository {
 
     override fun getProducts(page: Int): List<Product> {
         val cached = cacheManager.get("products_page_$page") as? List<*>
         if (cached != null) return cached.filterIsInstance<Product>()
 
-        val response = httpClient.get("https://api.shop.com/products?page=$page")
+        httpClient.get("https://api.shop.com/products?page=$page")
         logger.debug("ProductRepo", "Fetched products page $page")
         val products = listOf(
             Product("p1", "Wireless Headphones", 79.99, "Noise-cancelling BT headphones"),
@@ -45,20 +39,21 @@ class MetroProductRepository @Inject constructor(
         return products
     }
 
-    override fun getProductById(id: String): Product? = getProducts().find { it.id == id }
-    override fun search(query: String): List<Product> = getProducts().filter { it.name.contains(query, ignoreCase = true) }
+    override fun getProductById(id: String) = getProducts().find { it.id == id }
+
+    override fun search(query: String) =
+        getProducts().filter { it.name.contains(query, ignoreCase = true) }
 }
 
 @SingleIn(AppScope::class)
 class MetroCartRepository @Inject constructor(
-    private val authManager: AuthManager,         // ← Provided by Hilt
-    private val databaseManager: DatabaseManager, // ← Provided by Hilt
-    private val logger: Logger                    // ← Provided by Hilt
+    private val authManager: AuthManager,
+    private val databaseManager: DatabaseManager,
+    private val logger: Logger
 ) : CartRepository {
 
     override fun getCartItems(): List<CartItem> {
-        val userId = authManager.getUserId()
-        val rows = databaseManager.query("cart", "user_id = '$userId'")
+        val rows = databaseManager.query("cart", "user_id = '${authManager.getUserId()}'")
         return rows.map { row ->
             CartItem(
                 id = row["id"].toString(),
@@ -71,77 +66,61 @@ class MetroCartRepository @Inject constructor(
     }
 
     override fun addToCart(productId: String, quantity: Int) {
-        val userId = authManager.getUserId()
         databaseManager.insert("cart", mapOf(
-            "id" to "cart_${System.nanoTime()}",
-            "user_id" to userId,
+            "user_id" to authManager.getUserId(),
             "product_id" to productId,
-            "product_name" to "Product $productId",
-            "price" to 29.99,
             "quantity" to quantity
         ))
-        logger.debug("CartRepo", "Added $productId x$quantity to cart for $userId")
+        logger.debug("CartRepo", "Added $productId x$quantity for ${authManager.getUserId()}")
     }
 
-    override fun removeFromCart(itemId: String) {
-        logger.debug("CartRepo", "Removed $itemId from cart")
-    }
+    override fun removeFromCart(itemId: String) {}
 
-    override fun getTotal(): Double = getCartItems().sumOf { it.price * it.quantity }
+    override fun getTotal() = getCartItems().sumOf { it.price * it.quantity }
 }
 
 @SingleIn(AppScope::class)
 class MetroOrderService @Inject constructor(
-    private val authManager: AuthManager,             // ← Provided by Hilt
-    private val httpClient: HttpClient,               // ← Provided by Hilt
-    private val analyticsTracker: AnalyticsTracker,   // ← Provided by Hilt
-    private val logger: Logger                        // ← Provided by Hilt
+    private val authManager: AuthManager,
+    private val httpClient: HttpClient,
+    private val analyticsTracker: AnalyticsTracker,
+    private val logger: Logger
 ) : OrderService {
 
     override fun placeOrder(cartItems: List<CartItem>, addressId: String): String {
-        val userId = authManager.getUserId()
-        val token = authManager.getAccessToken()
         val total = cartItems.sumOf { it.price * it.quantity }
-
-        httpClient.post("https://api.shop.com/orders", """{"userId":"$userId","total":$total}""")
+        httpClient.post("https://api.shop.com/orders", """{"userId":"${authManager.getUserId()}","total":$total}""")
         analyticsTracker.track("order_placed", mapOf("total" to total, "items" to cartItems.size))
-        logger.debug("OrderService", "Order placed for $userId, total=$total")
-
         return "order_${System.nanoTime()}"
     }
 
-    override fun getOrderHistory(): List<Order> {
-        val response = httpClient.get("https://api.shop.com/orders?user=${authManager.getUserId()}")
-        return listOf(
-            Order("ord_1", emptyList(), 129.99, "delivered"),
-            Order("ord_2", emptyList(), 79.99, "shipped"),
-            Order("ord_3", emptyList(), 249.99, "processing")
-        )
-    }
+    override fun getOrderHistory() = listOf(
+        Order("ord_1", emptyList(), 129.99, "delivered"),
+        Order("ord_2", emptyList(), 79.99, "shipped")
+    )
 }
 
-// ── Metro DependencyGraph consuming Hilt's component ──
-
+/**
+ * Metro graph that consumes Hilt's Dagger component via @Includes.
+ *
+ * The Factory takes HiltCoreEntryPoint — Metro automatically reads
+ * all its public accessors (httpClient, authManager, etc.) and makes
+ * them available as bindings. Zero manual bridge code.
+ */
 @SingleIn(AppScope::class)
 @DependencyGraph(AppScope::class)
 interface MetroFeatureGraph {
 
-    // Metro-provided feature services (implementations above)
     val productRepository: ProductRepository
     val cartRepository: CartRepository
     val orderService: OrderService
 
-    // Bind interfaces to Metro implementations
     @Provides fun bindProductRepo(impl: MetroProductRepository): ProductRepository = impl
     @Provides fun bindCartRepo(impl: MetroCartRepository): CartRepository = impl
     @Provides fun bindOrderService(impl: MetroOrderService): OrderService = impl
 
-    // Factory: Hilt's entry point is passed via @Includes
-    // Metro reads all public accessors from it as available bindings
     @DependencyGraph.Factory
     fun interface Factory {
-        fun create(
-            @Includes hiltCore: com.codeint.interop.hilt.HiltCoreEntryPoint
-        ): MetroFeatureGraph
+        fun create(@Includes hiltCore: com.codeint.interop.hilt.HiltCoreEntryPoint): MetroFeatureGraph
     }
 }

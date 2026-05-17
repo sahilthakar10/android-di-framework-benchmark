@@ -17,7 +17,7 @@ android {
 }
 
 dependencies {
-    // Shares Hilt infrastructure from Metro interop module
     implementation(project(":benchmark-interop-hilt-metro"))
     implementation(libs.koin.core)
+    implementation("io.insert-koin:koin-android:4.2.0")
 }

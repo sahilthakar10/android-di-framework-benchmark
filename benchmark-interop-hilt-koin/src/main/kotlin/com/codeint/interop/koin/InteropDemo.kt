@@ -7,13 +7,17 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 
 /**
- * Hilt + Koin interop demo. Uses shared HiltCoreEntryPoint from :benchmark-interop-hilt-metro.
+ * Hilt + Koin coexistence example.
+ *
+ * Hilt owns core infrastructure (network, auth, analytics, DB, cache, logging).
+ * Koin owns new feature modules (product, cart, order).
+ *
+ * Bridge: createBridgeModule() manually passes 6 Hilt singletons into Koin (~20 lines).
+ * Compare with Metro interop which uses @Includes for zero bridge code.
  */
-object InteropDemo {
+object HiltKoinInteropExample {
 
-    fun run(hiltEntryPoint: HiltCoreEntryPoint): String {
-        val results = StringBuilder()
-
+    fun run(hiltEntryPoint: HiltCoreEntryPoint) {
         val bridgeModule = createBridgeModule(
             httpClient = hiltEntryPoint.interopHttpClient(),
             authManager = hiltEntryPoint.interopAuthManager(),
@@ -22,29 +26,17 @@ object InteropDemo {
             cacheManager = hiltEntryPoint.interopCacheManager(),
             logger = hiltEntryPoint.interopLogger()
         )
-        results.appendLine("✓ Created Koin bridge module with 6 Hilt dependencies (MANUAL)")
 
         try { stopKoin() } catch (_: Exception) {}
-        val koinApp = startKoin { modules(bridgeModule, koinFeatureModule) }
-        val koin = koinApp.koin
-        results.appendLine("✓ Koin started with bridge + feature modules")
+        val koin = startKoin { modules(bridgeModule, koinFeatureModule) }.koin
 
+        // Koin features consume Hilt infra transparently
         val products = koin.get<ProductRepository>().getProducts()
-        results.appendLine("✓ Koin ProductRepository returned ${products.size} products")
-
         koin.get<CartRepository>().addToCart("p1", 2)
-        results.appendLine("✓ Koin CartRepository added item to cart")
-
-        val orderId = koin.get<OrderService>().placeOrder(
+        koin.get<OrderService>().placeOrder(
             listOf(CartItem("c1", "p1", "Headphones", 79.99, 2)), "addr_1"
         )
-        results.appendLine("✓ Koin OrderService placed order: $orderId")
 
         stopKoin()
-
-        results.appendLine("")
-        results.appendLine("Bridge code: ~20 LINES (createBridgeModule + @EntryPoint)")
-
-        return results.toString()
     }
 }

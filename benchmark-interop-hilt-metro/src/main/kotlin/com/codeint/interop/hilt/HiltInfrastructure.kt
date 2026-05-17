@@ -9,14 +9,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * HILT SIDE — Core infrastructure.
- *
- * These are the existing services in a typical Hilt-based app.
- * They were here before Metro was introduced.
- * Metro will consume them via @Includes(daggerComponent).
+ * Hilt-managed core infrastructure.
+ * These represent existing services in a typical Hilt-based app.
  */
-
-// ── Implementations ──
 
 @Singleton
 class RealHttpClient @Inject constructor() : HttpClient {
@@ -27,7 +22,7 @@ class RealHttpClient @Inject constructor() : HttpClient {
 @Singleton
 class RealAuthManager @Inject constructor() : AuthManager {
     override fun isLoggedIn(): Boolean = true
-    override fun getAccessToken(): String = "Bearer hilt_access_token_${System.nanoTime()}"
+    override fun getAccessToken(): String = "Bearer hilt_token_${System.nanoTime()}"
     override fun getUserId(): String = "user_hilt_123"
 }
 
@@ -44,7 +39,7 @@ class RealAnalyticsTracker @Inject constructor(
 @Singleton
 class RealDatabaseManager @Inject constructor() : DatabaseManager {
     private val tables = mutableMapOf<String, MutableList<Map<String, Any>>>()
-    override fun query(table: String, where: String): List<Map<String, Any>> = tables[table] ?: emptyList()
+    override fun query(table: String, where: String) = tables[table] ?: emptyList()
     override fun insert(table: String, values: Map<String, Any>): Long {
         tables.getOrPut(table) { mutableListOf() }.add(values)
         return tables[table]!!.size.toLong()
@@ -61,11 +56,9 @@ class RealCacheManager @Inject constructor() : CacheManager {
 
 @Singleton
 class RealLogger @Inject constructor() : Logger {
-    override fun debug(tag: String, message: String) { /* logcat in real app */ }
-    override fun error(tag: String, message: String, throwable: Throwable?) { /* logcat + crash reporter */ }
+    override fun debug(tag: String, message: String) {}
+    override fun error(tag: String, message: String, throwable: Throwable?) {}
 }
-
-// ── Hilt Module (binds interfaces to implementations) ──
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -79,9 +72,8 @@ abstract class HiltInfrastructureModule {
 }
 
 /**
- * Hilt Entry Point — exposes Hilt-managed singletons for Metro to consume.
- * In a real app with Metro interop via @Includes, this wouldn't be needed.
- * But for demonstration, this shows how to manually bridge if needed.
+ * Entry point exposing Hilt singletons for other frameworks to consume.
+ * Metro reads this via @Includes. Koin and kotlin-inject pass these manually.
  */
 @dagger.hilt.EntryPoint
 @InstallIn(SingletonComponent::class)
