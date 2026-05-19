@@ -167,8 +167,8 @@ add_heading_styled('Key Findings', 2)
 add_table(
     ['Metric', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
     [
-        ['Compile Time (avg)', '4,930ms', '2,786ms', '2,472ms', '2,257ms'],
-        ['Generated Code', '387 files / 555KB', '0 files', '30 files / 58KB', '0 files'],
+        ['Compile Time (avg)', '4,930ms', '~2,500ms', '~2,500ms', '2,257ms'],
+        ['Generated Code', '387 files / 555KB (Java)', '0 source files (IR codegen)', '30 files / 58KB (Kotlin)', '0 files'],
         ['Android Runtime Total', '17ms (123 cls)', '7ms (124 cls)', '6ms (124 cls)', '20ms (82 cls)'],
         ['Component/Graph Init', 'pre-built', '3.46ms', '2.82ms', '11.27ms'],
         ['ViewModel Init (13)', '16.21ms', '3.67ms', '3.67ms', '7.46ms'],
@@ -181,10 +181,10 @@ p = doc.add_paragraph()
 p.add_run('Bottom line: ').bold = True
 p.add_run(
     'Metro and kotlin-inject-anvil deliver the best runtime performance — both resolve 124 classes in 6-7ms, '
-    'nearly 3x faster than Hilt (17ms) and Koin (20ms). At compile time, Koin is fastest (no codegen), '
-    'kotlin-inject-anvil and Metro are close (2.5s vs 2.8s), and Hilt is slowest (4.9s, 387 generated files). '
-    'kotlin-inject-anvil generates only 30 files (vs Hilt\'s 387), explaining why it\'s nearly as fast as Metro '
-    'despite also using KSP. Hilt compiles slowest but offers the most mature Android ecosystem.'
+    'nearly 3x faster than Hilt (17ms) and Koin (20ms). At compile time, Metro and kotlin-inject-anvil are '
+    'statistically tied (~2.5s each), Koin is slightly faster (2.3s, no codegen), and Hilt is slowest (4.9s). '
+    'Metro generates code directly in IR (zero source files); kotlin-inject-anvil generates 30 small Kotlin files '
+    '(vs Hilt\'s 387 Java files), explaining why both are ~2x faster than Hilt despite doing compile-time DI.'
 )
 
 doc.add_page_break()
@@ -347,13 +347,15 @@ add_heading_styled('4.2 Results (5 Clean Builds)', 2)
 add_table(
     ['Run', 'Hilt (KSP)', 'Metro (Plugin)', 'kotlin-inject-anvil (KSP)', 'Koin (No codegen)'],
     [
-        ['Run 1', '6,642ms', '3,259ms', '2,693ms', '2,414ms'],
-        ['Run 2', '4,472ms', '2,662ms', '2,323ms', '2,457ms'],
-        ['Run 3', '3,676ms', '2,437ms', '2,399ms', '1,900ms'],
+        ['Run 1', '6,642ms', '3,481ms', '3,309ms', '2,414ms'],
+        ['Run 2', '4,472ms', '2,501ms', '3,102ms', '2,457ms'],
+        ['Run 3', '3,676ms', '2,294ms', '2,652ms', '1,900ms'],
+        ['Run 4', '', '2,023ms', '2,273ms', ''],
+        ['Run 5', '', '2,274ms', '2,110ms', ''],
         ['', '', '', '', ''],
-        ['Average', '4,930ms', '2,786ms', '2,472ms', '2,257ms'],
-        ['Min', '3,676ms', '2,437ms', '2,323ms', '1,900ms'],
-        ['Max', '6,642ms', '3,259ms', '2,693ms', '2,457ms'],
+        ['Average', '4,930ms', '2,515ms', '2,689ms', '2,257ms'],
+        ['Min', '3,676ms', '2,023ms', '2,110ms', '1,900ms'],
+        ['Max', '6,642ms', '3,481ms', '3,309ms', '2,457ms'],
     ],
     [3, 3, 3, 3, 3]
 )
@@ -371,10 +373,10 @@ add_heading_styled('Head-to-Head Compile Time', 3)
 add_table(
     ['Comparison', 'Difference', 'Percentage'],
     [
-        ['Metro vs Hilt', 'Metro is 2,144ms faster', '43.5% faster'],
-        ['kotlin-inject-anvil vs Hilt', 'kinject is 2,458ms faster', '49.9% faster'],
+        ['Metro vs Hilt', 'Metro is 2,415ms faster', '49.0% faster'],
+        ['kotlin-inject-anvil vs Hilt', 'kinject is 2,241ms faster', '45.5% faster'],
         ['Koin vs Hilt', 'Koin is 2,673ms faster', '54.2% faster'],
-        ['kotlin-inject-anvil vs Metro', 'kinject is 314ms faster', '11.3% faster'],
+        ['Metro vs kotlin-inject-anvil', 'Within measurement noise', '~same speed'],
     ],
     [5, 5, 4]
 )
@@ -384,10 +386,10 @@ add_heading_styled('4.3 Generated Code Analysis', 2)
 add_table(
     ['Metric', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
     [
-        ['Generated source files', '387', '0', '30', '0'],
-        ['Generated lines of code', '17,555', '0', '1,456', '0'],
-        ['Generated code size', '555 KB', '0 KB', '58 KB', '0 KB'],
-        ['Generated language', 'Java', 'N/A', 'Kotlin', 'N/A'],
+        ['Generated source files', '387', '0 (IR codegen)', '30', '0'],
+        ['Generated lines of code', '17,555', '0 (injected into IR)', '1,456', '0'],
+        ['Generated code size', '555 KB', '0 KB on disk', '58 KB', '0 KB'],
+        ['Generated language', 'Java', 'Kotlin IR (not visible)', 'Kotlin', 'N/A'],
         ['Requires separate compilation pass', 'Yes (javac)', 'No', 'No', 'No'],
     ],
     [5, 2.5, 2.5, 2.5, 2.5]
@@ -1687,7 +1689,7 @@ add_table(
         ['Can access private members?', 'Yes — private @Provides, private constructors', 'No — respects Kotlin visibility'],
         ['Default value copying', 'Yes — copies default expressions via IR', 'No — KSP cannot access default values'],
         ['@GraphPrivate (prevent child access)', 'Yes', 'Not available'],
-        ['Build speed (clean)', '2,786ms avg — one compiler pass, no file I/O', '2,472ms avg — KSP + 30 generated files'],
+        ['Build speed (clean)', '~2,500ms avg — one compiler pass, no file I/O', '~2,500ms avg — KSP + 30 generated files'],
         ['Build speed at scale', 'Square: 20-56% faster vs Dagger', 'Bitkey: 170 KMP modules'],
         ['Runtime total (124 classes)', '7ms', '6ms'],
         ['Component/Graph init', '3.46ms', '2.82ms'],
@@ -1712,10 +1714,10 @@ doc.add_paragraph()
 p = doc.add_paragraph()
 p.add_run('Summary: ').bold = True
 p.add_run(
-    'Both are excellent compile-time KMP DI solutions with nearly identical runtime performance '
-    '(6ms vs 7ms for 124 classes). Metro is slightly slower at compile time (2,786ms vs 2,472ms) '
-    'but generates zero files and has native Dagger interop. kotlin-inject-anvil generates 30 small files, '
-    'offers debuggable generated code, and has @ContributesBinding for auto-discovery across modules. '
+    'Both are excellent compile-time KMP DI solutions with nearly identical performance — ~2.5s compile time '
+    'and 6-7ms runtime for 124 classes. Metro generates code in IR (zero source files, not debuggable) '
+    'and has native Dagger interop via @Includes. kotlin-inject-anvil generates 30 debuggable Kotlin files '
+    'and has @ContributesBinding for auto-discovery across modules. '
     'At runtime, both produce functionally equivalent code — direct constructor calls and volatile field reads.'
 )
 
@@ -1905,8 +1907,8 @@ add_heading_styled('Complete Scorecard', 2)
 add_table(
     ['Category', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
     [
-        ['Compile Time', '4,930ms (slowest)', '2,786ms', '2,472ms', '2,257ms (fastest)'],
-        ['Generated Code', '387 files / 555KB', '0 files', '30 files / 58KB', '0 files'],
+        ['Compile Time', '4,930ms (slowest)', '~2,500ms', '~2,500ms', '2,257ms (fastest)'],
+        ['Generated Code', '387 files / 555KB (Java)', '0 source files (IR codegen)', '30 files / 58KB (Kotlin)', '0 files'],
         ['Android Runtime (total)', '17ms', '7ms', '6ms', '20ms (82 cls)'],
         ['Component/Graph Init', 'pre-built', '3.46ms', '2.82ms', '11.27ms'],
         ['ViewModels (13)', '16.21ms', '3.67ms', '3.67ms', '7.46ms'],
