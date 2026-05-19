@@ -61,6 +61,7 @@ dependencies {
     implementation(project(":benchmark-hilt-large"))
     implementation(project(":benchmark-metro-large"))
     implementation(project(":benchmark-koin-large"))
+    implementation(project(":benchmark-kinject-large"))
 
     // Koin for runtime benchmark
     implementation(libs.koin.core)

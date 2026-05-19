@@ -81,6 +81,16 @@ fun MainScreen() {
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7C4DFF))
             ) { Text("Metro Full Benchmark", style = MaterialTheme.typography.titleMedium, color = Color.White) }
+
+            Spacer(Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    context.startActivity(Intent(context, KinjectFullBenchmarkActivity::class.java))
+                },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+            ) { Text("kotlin-inject-anvil Full Benchmark", style = MaterialTheme.typography.titleMedium, color = Color.White) }
         }
     }
 }

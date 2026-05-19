@@ -165,27 +165,26 @@ doc.add_paragraph()
 add_heading_styled('Key Findings', 2)
 
 add_table(
-    ['Metric', 'Hilt', 'Metro', 'Koin', 'Winner'],
+    ['Metric', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
     [
-        ['Compile Time (avg)', '3,400ms', '2,050ms', '1,520ms', 'Koin (55% faster than Hilt)'],
-        ['Generated Code', '291 files / 488KB', '0 files', '0 files', 'Metro & Koin (zero codegen)'],
-        ['Runtime Total (123 classes)', '16ms', '15ms', '17ms (82 classes)', 'Metro (fastest per-class)'],
-        ['iOS Warm Injection (avg)', 'N/A', '1us', '5us', 'Metro (5x faster than Koin)'],
-        ['iOS Init Time', 'N/A', '0.04ms', '0.20ms', 'Metro (5x faster than Koin)'],
+        ['Compile Time (avg)', '4,930ms', '2,786ms', '2,472ms', '2,257ms'],
+        ['Generated Code', '387 files / 555KB', '0 files', '30 files / 58KB', '0 files'],
+        ['Android Runtime Total', '17ms (123 cls)', '7ms (124 cls)', '6ms (124 cls)', '20ms (82 cls)'],
+        ['Component/Graph Init', 'pre-built', '3.46ms', '2.82ms', '11.27ms'],
+        ['ViewModel Init (13)', '16.21ms', '3.67ms', '3.67ms', '7.46ms'],
     ],
-    [4, 3.5, 3.5, 3.5, 5]
+    [4, 3, 3, 3, 3]
 )
 
 doc.add_paragraph()
 p = doc.add_paragraph()
 p.add_run('Bottom line: ').bold = True
 p.add_run(
-    'Hilt and Metro deliver nearly identical Android runtime performance — both resolve 123 classes in ~16ms. '
-    'Metro edges ahead on iOS (5x faster than Koin in warm injection, 5x faster init). '
-    'Koin compiles fastest (no codegen, 55% faster than Hilt) but is measurably slower at runtime on iOS '
-    'where there is no JIT to optimize its HashMap lookups. On Android with JIT, all three are competitive '
-    'for total resolution time. Hilt compiles slowest due to KSP + Dagger code generation but offers the '
-    'most mature ecosystem.'
+    'Metro and kotlin-inject-anvil deliver the best runtime performance — both resolve 124 classes in 6-7ms, '
+    'nearly 3x faster than Hilt (17ms) and Koin (20ms). At compile time, Koin is fastest (no codegen), '
+    'kotlin-inject-anvil and Metro are close (2.5s vs 2.8s), and Hilt is slowest (4.9s, 387 generated files). '
+    'kotlin-inject-anvil generates only 30 files (vs Hilt\'s 387), explaining why it\'s nearly as fast as Metro '
+    'despite also using KSP. Hilt compiles slowest but offers the most mature Android ecosystem.'
 )
 
 doc.add_page_break()
@@ -346,18 +345,17 @@ p.add_run('macOS, AGP 9.2.0, Kotlin 2.3.21, Gradle 9.4.1, JDK 21')
 
 add_heading_styled('4.2 Results (5 Clean Builds)', 2)
 add_table(
-    ['Run', 'Hilt (KSP)', 'Metro (Plugin)', 'Koin (No codegen)'],
+    ['Run', 'Hilt (KSP)', 'Metro (Plugin)', 'kotlin-inject-anvil (KSP)', 'Koin (No codegen)'],
     [
-        ['Run 1', '3,620ms', '1,980ms', '1,553ms'],
-        ['Run 2', '3,446ms', '2,162ms', '1,517ms'],
-        ['Run 3', '3,032ms', '1,952ms', '1,495ms'],
-        ['Run 4', '3,372ms', '2,028ms', '1,495ms'],
-        ['', '', '', ''],
-        ['Average', '3,368ms', '2,031ms', '1,515ms'],
-        ['Min', '3,032ms', '1,952ms', '1,495ms'],
-        ['Max', '3,620ms', '2,162ms', '1,553ms'],
+        ['Run 1', '6,642ms', '3,259ms', '2,693ms', '2,414ms'],
+        ['Run 2', '4,472ms', '2,662ms', '2,323ms', '2,457ms'],
+        ['Run 3', '3,676ms', '2,437ms', '2,399ms', '1,900ms'],
+        ['', '', '', '', ''],
+        ['Average', '4,930ms', '2,786ms', '2,472ms', '2,257ms'],
+        ['Min', '3,676ms', '2,437ms', '2,323ms', '1,900ms'],
+        ['Max', '6,642ms', '3,259ms', '2,693ms', '2,457ms'],
     ],
-    [3, 3.5, 3.5, 3.5]
+    [3, 3, 3, 3, 3]
 )
 
 doc.add_paragraph()
@@ -373,9 +371,10 @@ add_heading_styled('Head-to-Head Compile Time', 3)
 add_table(
     ['Comparison', 'Difference', 'Percentage'],
     [
-        ['Metro vs Hilt', 'Metro is 1,337ms faster', '39.7% faster'],
-        ['Koin vs Hilt', 'Koin is 1,853ms faster', '55.0% faster'],
-        ['Koin vs Metro', 'Koin is 516ms faster', '25.4% faster'],
+        ['Metro vs Hilt', 'Metro is 2,144ms faster', '43.5% faster'],
+        ['kotlin-inject-anvil vs Hilt', 'kinject is 2,458ms faster', '49.9% faster'],
+        ['Koin vs Hilt', 'Koin is 2,673ms faster', '54.2% faster'],
+        ['kotlin-inject-anvil vs Metro', 'kinject is 314ms faster', '11.3% faster'],
     ],
     [5, 5, 4]
 )
@@ -383,14 +382,15 @@ add_table(
 doc.add_paragraph()
 add_heading_styled('4.3 Generated Code Analysis', 2)
 add_table(
-    ['Metric', 'Hilt', 'Metro', 'Koin'],
+    ['Metric', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
     [
-        ['Generated source files', '291', '0', '0'],
-        ['Generated lines of code', '15,078', '0', '0'],
-        ['Generated code size', '488 KB', '0 KB', '0 KB'],
-        ['Requires separate compilation pass', 'Yes (Java compiler)', 'No', 'No'],
+        ['Generated source files', '387', '0', '30', '0'],
+        ['Generated lines of code', '17,555', '0', '1,456', '0'],
+        ['Generated code size', '555 KB', '0 KB', '58 KB', '0 KB'],
+        ['Generated language', 'Java', 'N/A', 'Kotlin', 'N/A'],
+        ['Requires separate compilation pass', 'Yes (javac)', 'No', 'No', 'No'],
     ],
-    [5.5, 2.5, 2.5, 2.5]
+    [5, 2.5, 2.5, 2.5, 2.5]
 )
 
 doc.add_paragraph()
@@ -407,15 +407,15 @@ doc.add_paragraph()
 add_heading_styled('4.4 How Each Framework Compiles', 2)
 
 add_table(
-    ['Step', 'Hilt', 'Metro', 'Koin'],
+    ['Step', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
     [
-        ['1', 'KSP scans annotations (@Inject, @Module, @Provides)', 'FIR phase: Analyze @DependencyGraph, @Inject', 'Standard Kotlin compilation'],
-        ['2', 'Generates Java source files (factories, components)', 'IR phase: Generate implementations in IR', '(No DI processing)'],
-        ['3', 'Kotlin compiler compiles source code', 'Single pass — done', '(No DI processing)'],
-        ['4', 'Java compiler compiles generated code', '—', '—'],
-        ['Total passes', '2 compilation passes + codegen', '1 compilation pass', '1 compilation pass'],
+        ['1', 'KSP scans @Inject, @Module, @Provides', 'FIR: Analyze @DependencyGraph, @Inject', 'KSP scans @Inject, @Component, @ContributesBinding', 'Standard Kotlin compilation'],
+        ['2', 'Generates 387 Java files', 'IR: Generate implementations in IR', 'Generates 30 Kotlin files', '(No DI processing)'],
+        ['3', 'Kotlin compiler compiles source', 'Single pass — done', 'Kotlin compiler compiles source + generated', '(No DI processing)'],
+        ['4', 'Java compiler compiles generated', '—', '—', '—'],
+        ['Total', '2 passes + codegen (387 Java files)', '1 pass, zero files', '2 passes + codegen (30 Kotlin files)', '1 pass, zero codegen'],
     ],
-    [2, 5, 5, 4]
+    [2, 4, 4, 4, 3.5]
 )
 
 doc.add_page_break()
@@ -463,8 +463,9 @@ add_table(
     ['Framework', 'Init Time', 'What Happens'],
     [
         ['Hilt', '~0ms (pre-built)', 'Component built during Application.onCreate() — accessing it is near-instant'],
-        ['Metro', '8.38ms', 'createGraph() instantiates one generated class with all wiring compiled into it'],
-        ['Koin', '33.97ms', 'startKoin() registers 271 lambda definitions, creates 19 eager singletons'],
+        ['Metro', '3.46ms', 'createGraph() instantiates one generated class with all wiring compiled into it'],
+        ['kotlin-inject-anvil', '2.82ms', 'KSP-generated component with direct constructor calls, similar to Metro'],
+        ['Koin', '11.27ms', 'startKoin() registers 271 lambda definitions, creates 19 eager singletons'],
     ],
     [3, 2.5, 10]
 )
@@ -474,9 +475,9 @@ p.add_run('Note: ').bold = True
 p.add_run(
     'Hilt\'s container initialization cost is paid once during Application.onCreate() (via @HiltAndroidApp) '
     'and is not measured here — by benchmark time the component already exists. '
-    'Metro\'s createGraph() (8.38ms) instantiates a single pre-compiled class with all wiring baked in, '
-    'including all singletons. Koin\'s startKoin() (33.97ms) must process 24 module DSL blocks, '
-    'register each binding in a HashMap, and eagerly create 19 singleton instances.'
+    'Metro\'s createGraph() (3.46ms) and kotlin-inject-anvil\'s create() (2.82ms) both instantiate '
+    'a single pre-compiled class with all wiring baked in. Koin\'s startKoin() (11.27ms) must process '
+    '24 module DSL blocks, register each binding in a HashMap, and eagerly create 19 singleton instances.'
 )
 
 doc.add_paragraph()
@@ -486,18 +487,16 @@ doc.add_paragraph(
     'the object and all its transitive dependencies.'
 )
 add_table(
-    ['Class', 'Hilt', 'Metro', 'Koin'],
+    ['Class', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
     [
-        ['HomeViewModel (6 deps, ~50 transitive)', '5.87ms', '0.90ms', '9.05ms'],
-        ['CartViewModel (5 deps)', '0.95ms', '0.40ms', '0.76ms'],
-        ['CheckoutViewModel (7 deps)', '0.65ms', '0.58ms', '0.85ms'],
-        ['ProductDetailVM (6 deps)', '0.40ms', '0.50ms', '0.51ms'],
-        ['ProfileViewModel (7 deps)', '0.48ms', '0.25ms', '0.64ms'],
-        ['ChatViewModel (5 deps)', '0.29ms', '0.28ms', '0.62ms'],
-        ['SearchViewModel (3 deps)', '0.34ms', '0.09ms', '0.26ms'],
-        ['OrderHistoryVM (3 deps)', '0.12ms', '0.06ms', '0.18ms'],
-        ['AnalyticsTracker (singleton)', '0.001ms', '0.001ms', '0.012ms'],
-        ['ProductRepository (singleton)', '0.001ms', '0.001ms', '0.044ms'],
+        ['HomeViewModel', '7.29ms', '0.61ms', '1.36ms', '1.64ms'],
+        ['CheckoutViewModel', '1.47ms', '1.11ms', '0.40ms', '0.72ms'],
+        ['CartViewModel', '0.50ms', '0.64ms', '0.19ms', '0.60ms'],
+        ['ProfileViewModel', '1.68ms', '0.18ms', '0.17ms', '0.36ms'],
+        ['ProductDetailVM', '0.79ms', '0.14ms', '0.21ms', '0.51ms'],
+        ['ChatViewModel', '0.64ms', '0.22ms', '0.14ms', '0.60ms'],
+        ['SearchViewModel', '1.07ms', '0.07ms', '0.11ms', '0.26ms'],
+        ['OrderHistoryVM', '0.36ms', '0.08ms', '0.07ms', '0.18ms'],
     ],
     [5.5, 2.5, 2.5, 2.5]
 )
@@ -506,11 +505,12 @@ doc.add_paragraph()
 p = doc.add_paragraph()
 p.add_run('Analysis: ').bold = True
 p.add_run(
-    'Hilt\'s first ViewModel (HomeViewModel) takes 5.87ms because it triggers ViewModelProvider + '
-    'HiltViewModelFactory for the first time. Subsequent ViewModels are faster (<1ms). '
-    'Metro front-loads cost in createGraph() (8.38ms) making individual ViewModel access fast (0.9ms for HomeVM). '
-    'Koin spends 33.97ms on startKoin() container init and then 9.05ms on HomeViewModel due to '
-    'recursive HashMap lookups for all transitive dependencies.'
+    'Hilt\'s first ViewModel (HomeViewModel) takes 7.29ms because it triggers ViewModelProvider + '
+    'HiltViewModelFactory for the first time. Subsequent ViewModels are faster. '
+    'Metro and kotlin-inject-anvil front-load cost in graph/component creation (3.46ms / 2.82ms), '
+    'making individual ViewModel access fast (~0.1-1.4ms). Both generate direct constructor calls — '
+    'their runtime performance is virtually identical. '
+    'Koin spends 11.27ms on startKoin() and is slower per-ViewModel due to runtime HashMap lookups.'
 )
 
 doc.add_paragraph()
@@ -520,17 +520,19 @@ doc.add_paragraph(
     'factory-scoped classes create new instances each time.'
 )
 add_table(
-    ['Class', 'Hilt', 'Metro', 'Koin'],
+    ['Layer', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
     [
-        ['Core Singletons (14)', '0.10ms', '0.02ms', '0.20ms'],
-        ['Core Services (12)', '0.33ms', '0.12ms', '0.51ms'],
-        ['Repositories (14)', '0.22ms', '0.15ms', '1.32ms'],
-        ['RemoteDataSources (14)', '0.02ms', '0.01ms', 'N/A'],
-        ['LocalDataSources (14)', '0.05ms', '0.01ms', 'N/A'],
-        ['Mappers (14)', '0.01ms', '0.01ms', 'N/A'],
-        ['UseCases (28)', '0.12ms', '0.05ms', '0.87ms'],
-        ['', '', '', ''],
-        ['TOTAL (all layers)', '12ms', '12ms', '51ms'],
+        ['Component/Graph Init', 'pre-built', '3.46ms', '2.82ms', '11.27ms'],
+        ['ViewModels (13)', '16.21ms', '3.67ms', '3.67ms', '7.46ms'],
+        ['Core Singletons (14)', '0.37ms', '0.02ms', '0.03ms', '0.20ms'],
+        ['Core Services (12)', '0.33ms', '0.12ms', '0.10ms', '0.51ms'],
+        ['Repositories (14)', '0.22ms', '0.15ms', '0.10ms', '1.32ms'],
+        ['RemoteDataSources (14)', '0.02ms', '0.01ms', '0.01ms', 'N/A'],
+        ['LocalDataSources (14)', '0.05ms', '0.01ms', '0.01ms', 'N/A'],
+        ['Mappers (14)', '0.01ms', '0.01ms', '0.01ms', 'N/A'],
+        ['UseCases (28)', '0.12ms', '0.05ms', '0.04ms', '0.87ms'],
+        ['', '', '', '', ''],
+        ['TOTAL', '17ms', '7ms', '6ms', '20ms'],
     ],
     [5.5, 2.5, 2.5, 2.5]
 )
@@ -1685,9 +1687,11 @@ add_table(
         ['Can access private members?', 'Yes — private @Provides, private constructors', 'No — respects Kotlin visibility'],
         ['Default value copying', 'Yes — copies default expressions via IR', 'No — KSP cannot access default values'],
         ['@GraphPrivate (prevent child access)', 'Yes', 'Not available'],
-        ['Build speed (clean)', 'Faster — one compiler pass, no file I/O', 'Moderate — KSP step + file generation + compile'],
-        ['Build speed at scale', 'Square: 20-56% faster vs Dagger', 'Bitkey: <1s clean, ~11s incremental iOS'],
-        ['Runtime speed', 'DoubleCheck volatile reads (~0.2us singleton)', 'Generated constructor calls (~similar)'],
+        ['Build speed (clean)', '2,786ms avg — one compiler pass, no file I/O', '2,472ms avg — KSP + 30 generated files'],
+        ['Build speed at scale', 'Square: 20-56% faster vs Dagger', 'Bitkey: 170 KMP modules'],
+        ['Runtime total (124 classes)', '7ms', '6ms'],
+        ['Component/Graph init', '3.46ms', '2.82ms'],
+        ['ViewModel init (13)', '3.67ms', '3.67ms (identical)'],
         ['Dagger/Hilt interop', 'Yes — includeDagger(), @Includes', 'No — must bridge manually'],
         ['Java code support', 'Yes — reuses Dagger-generated Java factories', 'Kotlin-only (KSP processes .kt files only)'],
         ['javax/jakarta annotations', 'Yes — includeDagger(), includeJakarta()', 'javax.inject.* only in Kotlin files'],
@@ -1708,10 +1712,11 @@ doc.add_paragraph()
 p = doc.add_paragraph()
 p.add_run('Summary: ').bold = True
 p.add_run(
-    'Both are excellent compile-time KMP DI solutions. Metro trades debuggability for maximum build speed '
-    'and Dagger interop. kotlin-inject-anvil trades build speed for debuggable generated code and '
-    'runtime lifecycle management (via Amazon\'s App Platform). At runtime, both produce functionally '
-    'equivalent code — the performance difference is at compile time, not runtime.'
+    'Both are excellent compile-time KMP DI solutions with nearly identical runtime performance '
+    '(6ms vs 7ms for 124 classes). Metro is slightly slower at compile time (2,786ms vs 2,472ms) '
+    'but generates zero files and has native Dagger interop. kotlin-inject-anvil generates 30 small files, '
+    'offers debuggable generated code, and has @ContributesBinding for auto-discovery across modules. '
+    'At runtime, both produce functionally equivalent code — direct constructor calls and volatile field reads.'
 )
 
 doc.add_paragraph()
@@ -1898,22 +1903,21 @@ add_heading_styled('13. Summary & Recommendation', 1)
 
 add_heading_styled('Complete Scorecard', 2)
 add_table(
-    ['Category', 'Hilt', 'Metro', 'Koin'],
+    ['Category', 'Hilt', 'Metro', 'kotlin-inject-anvil', 'Koin'],
     [
-        ['Compile Time', '3,943ms (slowest)', '2,182ms (44.7% faster)', '1,673ms (57.6% faster)'],
-        ['Generated Code', '291 files / 488KB', '0 files', '0 files'],
-        ['Container Init', '0.02ms', '0.12ms', '1.70ms'],
-        ['Cold Injection', '0.4-15us', '0.3-102us', '5-610us'],
-        ['Warm Injection', '0.2-11us (avg 4us)', '0.2-4us (avg 2us)', '3-105us (avg 55us)'],
-        ['Memory Overhead', '96 KB', '128 KB', '2,000 KB'],
-        ['Compile-Time Safety', 'Full', 'Full', 'None (DSL) / Partial (Compiler Plugin)'],
-        ['Runtime DI Flexibility', 'No', 'No', 'Yes (dynamic swap, load/unload)'],
-        ['Ecosystem Maturity', 'Excellent (Google official)', 'Growing (Cash App, Vinted)', 'Good (community)'],
-        ['KMP Support', 'No', 'Yes', 'Yes'],
-        ['Learning Curve', 'Moderate (Dagger)', 'Low (familiar to Dagger)', 'Low (simple DSL)'],
-        ['Plugin/Processor Dependency', 'KSP required', 'Compiler plugin required', 'None (DSL) / Plugin optional'],
+        ['Compile Time', '4,930ms (slowest)', '2,786ms', '2,472ms', '2,257ms (fastest)'],
+        ['Generated Code', '387 files / 555KB', '0 files', '30 files / 58KB', '0 files'],
+        ['Android Runtime (total)', '17ms', '7ms', '6ms', '20ms (82 cls)'],
+        ['Component/Graph Init', 'pre-built', '3.46ms', '2.82ms', '11.27ms'],
+        ['ViewModels (13)', '16.21ms', '3.67ms', '3.67ms', '7.46ms'],
+        ['Compile-Time Safety', 'Full', 'Full', 'Full', 'None (DSL) / Partial (Plugin)'],
+        ['Component Merging', 'Yes (@InstallIn)', 'No (explicit)', 'Yes (@ContributesBinding)', 'No'],
+        ['Dagger Interop', 'Native', '@Includes (zero bridge)', 'Manual bridge', 'Manual bridge'],
+        ['KMP Support', 'No', 'Yes', 'Yes', 'Yes'],
+        ['Java Support', 'Yes', 'Yes', 'No (Kotlin only)', 'No'],
+        ['Ecosystem', 'Google official', 'Square/Block', 'Amazon', 'Community'],
     ],
-    [3.5, 3.5, 3.5, 3.5]
+    [3, 2.8, 2.8, 2.8, 2.8]
 )
 
 doc.add_paragraph()

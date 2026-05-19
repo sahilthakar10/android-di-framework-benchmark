@@ -43,6 +43,10 @@
             android:name=".MetroFullBenchmarkActivity"
             android:exported="true"
             android:theme="@style/Theme.BenchMarking" />
+        <activity
+            android:name=".KinjectFullBenchmarkActivity"
+            android:exported="true"
+            android:theme="@style/Theme.BenchMarking" />
     </application>
 
 </manifest>
