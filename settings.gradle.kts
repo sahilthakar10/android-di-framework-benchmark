@@ -40,4 +40,5 @@ include(":benchmark-koin-large")
 include(":benchmark-interop-hilt-metro")
 include(":benchmark-interop-hilt-koin")
 include(":benchmark-interop-hilt-kinject")
+include(":benchmark-kinject-large")
 
